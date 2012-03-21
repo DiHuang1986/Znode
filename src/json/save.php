@@ -7,3 +7,4 @@ if (isset($_POST["data"])){
   fclose($file);
   echo "saved";
 }
+?>
