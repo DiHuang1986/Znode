@@ -1,6 +1,6 @@
 $(function(){
   
-  var graph = new NodeGraph();
+  var graph = new NodeGraph(); // composition view
   
   // consider moving to NodeGraph
   $("#canvas").mouseup(function(e){
