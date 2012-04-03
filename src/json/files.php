@@ -6,3 +6,4 @@ foreach(glob("../files/*.json") as $filename){
   $name = preg_split("/\.json/", $name[2]);
   echo "<div class='file'>" .  $name[0] . "</div>";
 }
+?>
