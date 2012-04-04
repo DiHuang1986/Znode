@@ -386,7 +386,7 @@ function NodeGraph() {
 	}
 
 	function Node(xp, yp, w, h, noDelete, forceId) {
-
+        
 		if(forceId) {
 			nodeId = forceId;
 		}
@@ -403,6 +403,11 @@ function NodeGraph() {
 			return c;
 		}
 
+        this.PopoverHide = function() {
+          var id = "#node_text_" + this.id;
+          $(id).popover('hide');
+        }
+        
 		canvas.append("<div class='node'/>");
 		var n = $(".node").last();
 		n.css({
@@ -485,7 +490,7 @@ function NodeGraph() {
 			});
 		}
         
-		n.append("<textarea class='txt' id='myText' spellcheck='false' rel='popover' data-content='Test' data-original-title='A Title'/>");
+		n.append("<textarea class='txt' id='node_text_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='Test' data-original-title='A Title'/>");
 		var txt = $(".node .txt").last();
 		txt.css("position", "absolute");
 
@@ -739,6 +744,7 @@ function NodeGraph() {
 		var w = currentNode.width() || defaultWidth;
 		var h = currentNode.height() || defaultHeight;
 		var temp = new Node(mouseX, mouseY + 40, w, h);
+        temp.PopoverHide();
 		currentNode = temp;
 		currentConnection = null;
 	}
@@ -747,6 +753,7 @@ function NodeGraph() {
 		var temp = new Node(win.width() / 2 - defaultWidth / 2, win.height() / 2 - defaultHeight / 2, defaultWidth, defaultHeight, true);
 		temp.txt[0].focus();
 		currentNode = temp;
+        temp.PopoverHide();
 	}
 
 	defaultNode();

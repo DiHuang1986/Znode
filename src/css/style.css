@@ -141,7 +141,7 @@ body {
     font: 12px Tahoma, sans-serif;
     /* text-shadow: 0 1px 0 black; */
     background: #444444;
-    color: white;
+    color: black;
 }
 
 #textarea_code {
@@ -152,7 +152,7 @@ body {
     -khtml-border-radius:20px;
     background-color:#fff;
     font-family:Arial;
-    color:#999;
+    color:black;
     width:95%;
     height: 300px;
     font-size:12px;

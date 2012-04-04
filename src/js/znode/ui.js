@@ -91,24 +91,25 @@ $(function() {
         $("#PasteCodePopup").modal('show');
     });
     
-    $("#close_button").click(function() {
+    $("#paste_code_close_button").click(function() {
         $("#PasteCodePopup").modal('hide');
     })
+    
+    $("#open_javascript_close_button").click(function() {
+        $("#OpenJavascriptPopup").modal('hide');
+    })    
     
     $("#parse_button").click(function() {
         // We should now take the code and parse it.
         var code = $("#textarea_code").val();
         
-        var gen_code = generate_intellisense(code);
-        
-        // Generate the Intellisense Code
-        document.getElementById("textarea_code").value = gen_code;
+        parseInit(false, code);
     });
     
     $("#open_js").click(function() {
         $("#OpenJavascriptPopup").modal('show');
     });
-    
+        
     var nameMessage = "Enter your file name";
     var filename = $("#filename").val(nameMessage);
 
@@ -146,7 +147,7 @@ $(function() {
         });
     });
     
-    $('#myText').popover('hide');
+    // $('#myText').popover('hide');
     
     $('.className').live('click', function() {
         $('#comp').dialog({
@@ -164,3 +165,52 @@ $(function() {
         });
     });
 });
+
+var selectedFiles;
+
+function handleFiles(files) {
+  selectedFiles = files;
+  
+  var table = document.getElementById("js_table");
+    
+  for (var i = 0; i < files.length; ++i) {
+    var rowCount = table.rows.length;
+    var row = table.insertRow(rowCount);
+    var cell = row.insertCell(0);
+    // cell.innerHTML = files[i].name;
+    var element = document.createElement("h6");
+    var center = document.createElement("center");
+    center.innerHTML = files[i].name;
+    element.appendChild(center);
+    element.type = "text";
+    cell.appendChild(element);    
+  }
+}
+
+//////////////////////////////////////////////////// Parsing API ////////////////////////////////////////////////////
+// Global variable for storing the code
+var globalCode;
+function readFiles() {  
+  // Loop through the FileList and render image files as thumbnails.
+  for (var i = 0, f; f = selectedFiles[i]; i++) {
+    var reader = new FileReader();
+
+    // If we use onloadend, we need to check the readyState.
+    reader.onloadend = function(evt) {
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            globalCode = evt.target.result;
+      }
+    };
+    
+    reader.readAsText(f);
+  }
+}
+
+function parseInit(read_file, code) {
+  if (read_file == true) {
+    readFiles();
+    code = globalCode;
+  }
+  
+  // var gen_code = generate_intellisense(code);
+}
