@@ -39,6 +39,68 @@
 		    <div id="classNames"></div>
 		</div>
 		<div id="overlay"></div>
+        <!-- Add the Topbar from Bootstrap -->
+        <div id="top_toolbar" class="navbar">
+            <div class="navbar-inner">
+              <div class="container">
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </a>
+                <a class="brand" href="#">ZNode</a>
+                <div class="nav-collapse">
+                  
+                  <!-- File Dropdown -->
+                  <ul class="nav">
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">File <b class="caret"></b></a>
+                      <ul id="file_dropdown" class="dropdown-menu">
+                        <li><a id="open_json">Open Json</a></li>
+                        <li><a id="open_js">Open Javascript</a></li>
+                        <li><a id="paste_code">Paste Code</a></li>
+                        <li class="divider"></li>
+                        <li><a id="save">Save</a></li>
+                      </ul>
+                    </li>
+                  </ul>
+                  
+                  <!-- Views Dropdown -->
+                  <ul class="nav">
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">View <b class="caret"></b></a>
+                      <ul id="view_dropdown" class="dropdown-menu">
+                        <li><a id="analyze_code">Analyze Code</a></li>
+                        <li class="divider"></li>
+                        <li><a id="inheritance_view">Inheritance View</a></li>
+                        <li><a id="composition_view">Composition View</a></li>
+                        <li><a id="resource_view">Resource View</a></li>
+                        <li class="divider"></li>
+                        <li><a id="clear_canvas">Clear Canvas</a></li>
+                      </ul>
+                    </li>
+                  </ul>                  
+                  
+                  <!-- Help Dropdown -->
+                  <ul class="nav pull-right">
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                        <li><a id="about">About</a></li>
+                      </ul>
+                    </li>
+                  </ul>
+                  
+                  <form class="navbar-search pull-right" action="">
+                    <input type="text" class="search-query span2" placeholder="Name :">
+                  </form>
+                </div><!-- /.nav-collapse -->
+              </div>
+            </div><!-- /navbar-inner -->
+          </div>        
+        <!-- This Toolbar can go -->        
+        
+        <!--
 		<div id="controls">
 			<div id="logo" >
 				Znode
@@ -49,6 +111,9 @@
 			<div id="open" class="btn_">
 				Open
 			</div>
+            <div id="open_js" class="btn_">
+                Open Javascript
+            </div>            
             <div id="paste_code" class="btn_">
                 Paste Code
             </div>
@@ -74,6 +139,9 @@
 				</form>
 			</div>
 		</div>
+        -->
+        
+        <!-- Main Canvas for drawing -->
 		<div id="canvas"></div>
         
         <div class="modal hide fade popup" id="PasteCodePopup">
@@ -88,6 +156,33 @@
                 <a class="btn" id="close_button">Close</a>
                 <a class="btn btn-primary" id="parse_button">Parse</a>
             </div>
-        </div>                
+        </div>
+        
+        
+        <div class="modal hide fade popup" id="OpenJavascriptPopup">
+            <div class="modal-header">
+                <a class="close" data-dismiss="modal">x</a>
+                <h3><center>Paste Code</center></h3>
+            </div>
+            <div class="modal-body">
+            <table class="table table-striped">
+                <tbody class="files" data-toggle="modal-gallery" data-target="#modal-gallery">
+                  
+                </tbody>
+            </table>
+            </div>
+            <div class="modal-footer">
+                <span class="btn btn-success fileinput-button">
+                    <i class="icon-plus icon-white"></i>
+                    <span>Add files...</span>
+                    <input type="file" name="files[]" multiple="">
+                </span>                       
+                <a class="btn" id="close_button">Close</a>
+                <a class="btn btn-primary" id="parse_button">Parse</a>
+            </div>
+        </div>        
+        
+
+        
 	</body>
 </html>

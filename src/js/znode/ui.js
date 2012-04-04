@@ -80,7 +80,7 @@ $(function() {
         openComp.fadeOut();
     });
 
-    $("#open").click(function() {
+    $("#open_json").click(function() {
         var fileList = $("#files");
         fileList.html("<div>loading...<\/div>");
         openWin.fadeIn();
@@ -103,6 +103,10 @@ $(function() {
         
         // Generate the Intellisense Code
         document.getElementById("textarea_code").value = gen_code;
+    });
+    
+    $("#open_js").click(function() {
+        $("#OpenJavascriptPopup").modal('show');
     });
     
     var nameMessage = "Enter your file name";

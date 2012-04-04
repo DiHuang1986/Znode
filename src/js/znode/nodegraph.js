@@ -16,14 +16,13 @@ function NodeGraph() {
 	var hitConnect;
 	var key = {};
 	var SHIFT = 16;
-	var topHeight = $("#controls").height();
+	var topHeight = $("#top_toolbar").height();
 
 	var paper = new Raphael("canvas", "100", "100");
 
 	function resizePaper() {
 		paper.setSize(win.width(), win.height() - topHeight);
 	}
-
 
 	win.resize(resizePaper);
 	resizePaper();
@@ -53,11 +52,11 @@ function NodeGraph() {
 	vsmenu.hide();
 	
 	// the jQuery dialog divs
-	canvas.append("<div id='inher' title='Inheritance'>This is the inheritance view<\/div>");
-	canvas.append("<div id='comp' title='Composition'>This is the composition view<\/div>");
-	canvas.append("<div id='global' title='Global Variables'>This is the global variables view<\/div>");
-	canvas.append("<div id='function' title='Functions'>This is the functions view<\/div>");
-	canvas.append("<div id='res' title='Resources'>This is the resources view<\/div>");
+	//canvas.append("<div id='inher' title='Inheritance'>This is the inheritance view<\/div>");
+	//canvas.append("<div id='comp' title='Composition'>This is the composition view<\/div>");
+	//canvas.append("<div id='global' title='Global Variables'>This is the global variables view<\/div>");
+	//canvas.append("<div id='function' title='Functions'>This is the functions view<\/div>");
+	//canvas.append("<div id='res' title='Resources'>This is the resources view<\/div>");
 
 	canvas.append("<div id='hit' />");
 	hitConnect = $("#hit");
@@ -739,7 +738,7 @@ function NodeGraph() {
 		//alert("Zevan");
 		var w = currentNode.width() || defaultWidth;
 		var h = currentNode.height() || defaultHeight;
-		var temp = new Node(mouseX, mouseY + 30, w, h);
+		var temp = new Node(mouseX, mouseY + 40, w, h);
 		currentNode = temp;
 		currentConnection = null;
 	}

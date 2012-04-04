@@ -1,4 +1,4 @@
-body, html {
+/*body, html {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
@@ -12,6 +12,7 @@ body, html {
 	z-index: 1000;
 	cursor: pointer;
 }
+
 #controls {
 	width: 100%;
 	height: 40px;
@@ -21,6 +22,7 @@ body, html {
 	border-right: none;
 	border-bottom: 1px solid #999;
 }
+
 .btn_ {
 	padding: 17px 8px 13px 8px;
 	height: 10px;
@@ -49,8 +51,9 @@ body, html {
 	background-color: #dcdcdc;
 	z-index: 6000;
 	display: none;
-}
-#openComp {
+}*/
+
+/*#openComp {
 	position: absolute;
 	top: 60px;
 	left: 20px;
@@ -99,7 +102,7 @@ input {
 	padding: 10px 0px 0px 18px;
 }
 /* related to NodeGraph & li/ul */
-ul {
+/*ul {
 	padding: 0;
 	margin: 0;
 	background-color: white;
@@ -124,12 +127,21 @@ li, .file {
 	font-family: Georgia, serif;
 	border-bottom: 1px solid #cccccc;
 	padding: 5px 10px 5px 10px;
-}
+}*/
+/*
 textarea, input {
 	outline: none;
 }
 .highlight {
 	background-color: #FFFF88;
+}
+*/
+
+body {
+    font: 12px Tahoma, sans-serif;
+    /* text-shadow: 0 1px 0 black; */
+    background: #444444;
+    color: white;
 }
 
 #textarea_code {
@@ -152,4 +164,24 @@ textarea, input {
 #textarea_code:focus{
 	outline:none;
 	background-color:#F3FFCF;
+}
+
+.fileinput-button {
+  position: relative;
+  overflow: hidden;
+  float: left;
+  margin-right: 4px;
+}
+.fileinput-button input {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  border: solid transparent;
+  border-width: 0 0 100px 200px;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  -moz-transform: translate(-300px, 0) scale(4);
+  direction: ltr;
+  cursor: pointer;
 }
