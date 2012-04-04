@@ -417,7 +417,6 @@ function NodeGraph() {
 			"width" : w,
 			"height" : h,
 			"border" : "1px solid black",
-			//"background-color" : "white"
 			"background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
 			"-webkit-border-radius" : "10px"
 		});
@@ -448,34 +447,39 @@ function NodeGraph() {
 		var nodeWidth = n.width();
 		var nodeHeight = n.height();
 
-		n.append("<div class='bar'/>");
+		n.append("<div class='bar'><center><b>Test</center></div>");
 		var bar = $(".node .bar").last();
 		bar.css({
-			"height" : "10px",
-			"background-color" : "gray",
+            "border-top-left-radius": "8px",
+            "border-top-right-radius": "8px",
+			"height" : "20px",
+            "background-color" : "black",
 			"padding" : "0",
 			"margin" : "0",
-			"font-size" : "9px",
+            "font": "12px Tahoma, sans-serif",
 			"cursor" : "pointer",
-			"-webkit-border-radius" : "10px"
+            "color" : "white",
+			"-webkit-border-top-left-radius" : "8px",
+			"-webkit-border-top-right-radius" : "8px"
 		});
 
 		if(!noDelete) {
-			n.append("<div class='ex'>X<\/div>");
+			n.append("<img class='ex' width=15 height=15 src='img/close.png'><\/img>");
 			var ex = $(".node .ex").last();
 			ex.css({
+                "border-top-left-radius": "8px",              
 				"position" : "absolute",
-				"padding-right" : 2,
-				"padding-top" : 1,
-				"padding-left" : 2,
+				"padding-right" : 5,
+				"padding-top" : 3,
+				"padding-left" : 5,
+                "padding-bottom" : 2,
 				"color" : "white",
 				"font-family" : "sans-serif",
 				"top" : 0,
 				"left" : 0,
 				"cursor" : "pointer",
-				"font-size" : "7px",
-				"background-color" : "gray",
-				"-webkit-border-radius" : "10px",
+				"font-size" : "10px",
+				"background-color" : "black",
 				"z-index" : 100
 			});
 			ex.hover(function() {
@@ -503,7 +507,6 @@ function NodeGraph() {
 			"font-family" : "sans-serif",
 			"border" : "none",
 			"background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
-			"-webkit-border-radius" : "10px",
 			"z-index" : 4
 		});
 

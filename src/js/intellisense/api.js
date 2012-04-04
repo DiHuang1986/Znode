@@ -26,5 +26,5 @@ function generate_intellisense(code) {
     
     var ast = parse(code, false, true);
     
-    return GlobalIntellisenseRoot.toString();
+    return GlobalIntellisenseRoot;
 }

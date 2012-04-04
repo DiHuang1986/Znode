@@ -147,8 +147,6 @@ $(function() {
         });
     });
     
-    // $('#myText').popover('hide');
-    
     $('.className').live('click', function() {
         $('#comp').dialog({
             autoOpen : true,
@@ -187,6 +185,11 @@ function handleFiles(files) {
   }
 }
 
+function generateNodes(intellisense) {
+  // Generate new Nodes based on the classes found.
+  
+}
+
 //////////////////////////////////////////////////// Parsing API ////////////////////////////////////////////////////
 // Global variable for storing the code
 var globalCode;
@@ -212,5 +215,5 @@ function parseInit(read_file, code) {
     code = globalCode;
   }
   
-  // var gen_code = generate_intellisense(code);
+  var intellisense = generate_intellisense(code);
 }
