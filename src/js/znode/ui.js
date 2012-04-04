@@ -22,7 +22,7 @@ $(function() {
     var openComp = $('#openComp');
     openComp.hide();
 
-    $(".btn").mouseenter(function() {
+    $(".btn_").mouseenter(function() {
         $(this).animate({
             "backgroundColor" : "white"
         }, 200);
@@ -86,6 +86,20 @@ $(function() {
         openWin.fadeIn();
         fileList.load("json/files.php?" + Math.random() * 1000000);
     });
+    
+    $("#paste_code").click(function() {
+        $("#PasteCodePopup").modal('show');
+    });
+    
+    $("#close_button").click(function() {
+        $("#PasteCodePopup").modal('hide');
+    })
+    
+    $("#parse_button").click(function() {
+        // We should now take the code and parse it.
+        var code = $("#textarea_code").val();
+    });
+    
     var nameMessage = "Enter your file name";
     var filename = $("#filename").val(nameMessage);
 

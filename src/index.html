@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Znode</title>
+        <link rel="stylesheet" href="css/bootstrap.css" type="text/css" />
 		<link rel="stylesheet" href="css/style.css" type="text/css" />
 		<link rel="stylesheet" href="css/jquery-ui-1.8.18.custom.css"/>
 		<script type="text/javascript" src="js/libs/jquery-1.7.1.min.js"></script>
@@ -12,6 +13,7 @@
 		<script type="text/javascript" src="js/znode/nodegraph.js"></script>
 		<script type="text/javascript" src="js/znode/ui.js"></script>
 		<script type="text/javascript" src="js/libs/jquery.highlight.js"></script>
+        <script type="text/javascript" src="js/libs/bootstrap.js"></script>
 	</head>
 	<body>
 		<div id="openWin">
@@ -31,25 +33,28 @@
 			<div id="logo" >
 				Znode
 			</div>
-			<div id="save" class="btn">
+			<div id="save" class="btn_">
 				Save
 			</div>
-			<div id="open" class="btn">
+			<div id="open" class="btn_">
 				Open
 			</div>
-			<div id="clear" class="btn">
+            <div id="paste_code" class="btn_">
+                Paste Code
+            </div>
+			<div id="clear" class="btn_">
 				Clear All
 			</div>
-			<div id="inheritance" class="btn">
+			<div id="inheritance" class="btn_">
                 Inheritance
             </div>
-            <div id="composition" class="btn">
+            <div id="composition" class="btn_">
                 Composition
             </div>
-            <div id="resources" class="btn">
+            <div id="resources" class="btn_">
                 Resources
             </div>
-			<div id="help" class="btn">
+			<div id="help" class="btn_">
 				Help
 			</div>
 			<div id="saveForm">
@@ -60,5 +65,19 @@
 			</div>
 		</div>
 		<div id="canvas"></div>
+        
+        <div class="modal hide fade popup" id="PasteCodePopup">
+            <div class="modal-header">
+                <a class="close" data-dismiss="modal">x</a>
+                <h3><center>Paste Code</center></h3>
+            </div>
+            <div class="modal-body">
+              <textarea id="textarea_code"></textarea>
+            </div>
+            <div class="modal-footer">
+                <a class="btn" id="close_button">Close</a>
+                <a class="btn btn-primary" id="parse_button">Parse</a>
+            </div>
+        </div>                
 	</body>
 </html>

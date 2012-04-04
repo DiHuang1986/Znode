@@ -491,8 +491,8 @@ function NodeGraph() {
 		txt.css("position", "absolute");
 
 		txt.css({
-			"width" : nodeWidth - 5,
-			"height" : nodeHeight - bar.height() - 5,
+			"width" : nodeWidth - 10,
+			"height" : nodeHeight - bar.height() - 10,
 			"resize" : "auto",
 			"overflow" : "auto",
 			"font-size" : "12px",

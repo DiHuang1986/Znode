@@ -21,7 +21,7 @@ body, html {
 	border-right: none;
 	border-bottom: 1px solid #999;
 }
-.btn {
+.btn_ {
 	padding: 17px 8px 13px 8px;
 	height: 10px;
 	margin: 0px 0px 0px 2px;
@@ -130,4 +130,26 @@ textarea, input {
 }
 .highlight {
 	background-color: #FFFF88;
+}
+
+#textarea_code {
+    outline: none;
+    border:1px solid #ccc;
+    -moz-border-radius:20px;
+    -webkit-border-radius:20px;
+    -khtml-border-radius:20px;
+    background-color:#fff;
+    font-family:Arial;
+    color:#999;
+    width:95%;
+    height: 300px;
+    font-size:12px;
+    padding:10px;
+	resize:none;
+	overflow:auto;
+}
+
+#textarea_code:focus{
+	outline:none;
+	background-color:#F3FFCF;
 }
