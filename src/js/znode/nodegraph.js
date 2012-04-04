@@ -24,7 +24,6 @@ function NodeGraph() {
 		paper.setSize(win.width(), win.height() - topHeight);
 	}
 
-
 	win.resize(resizePaper);
 	resizePaper();
 
@@ -40,7 +39,7 @@ function NodeGraph() {
 	});
 	menu.hide();
 
-	canvas.append("<ul id='vsmenu'><li>Inheritance<\/li><li>Composition<\/li><li>Global<\/li><li>Functions<\/li><li>Resources<\/li><li>Exit<\/li><\/ul>");
+	canvas.append("<ul id='vsmenu'><li>Global<\/li><li>Functions<\/li><li>Exit<\/li><\/ul>");
 	var vsmenu = $("#vsmenu");
 	vsmenu.css({
 		"position" : "absolute",
@@ -98,7 +97,7 @@ function NodeGraph() {
 		// jQuery code goes here.
 		viewName = viewName.toLowerCase();
 		if (viewName == 'inheritance'){
-			// add parsed data
+			// add parsed data  buildInher...
 			$('#inher').dialog({
 				autoOpen: true,
 				show: "blind",
@@ -113,10 +112,23 @@ function NodeGraph() {
 			});
 		}
 		if (viewName == 'global'){
+			var textArea = $('textarea');
+			var content = "";
+			textArea.each(function(){
+				content = $(this).val();
+				//$('#global').append("<p>" + content + "</p>");
+				$.each(content.split(/[\r\n]+/), function(i, line) { 
+					$('<p>').text(line).appendTo('#global') })
+			});
+			//$('#global').text(content); // copy textarea context to dialog
+			$('#global').highlight(g_selText); // highlight the selected text.
 			$('#global').dialog({
 				autoOpen: true,
 				show: "blind",
-				hide: "explode"
+				hide: "explode",
+				close: function (event, ui) {
+				  $('#global').text("");
+				}
 			});
 		}
 		if (viewName == 'functions'){
@@ -399,14 +411,16 @@ function NodeGraph() {
 			"top" : yp,
 			"width" : w,
 			"height" : h,
-			"border" : "1px solid gray",
-			"background-color" : "white"
+			"border" : "1px solid black",
+			//"background-color" : "white"
+			"background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+			"-webkit-border-radius" : "10px"
 		});
 		n.css("z-index", zindex++);
 
 		n.mouseup(function(){
-		var selText = GetSelectedText();
-		if (selText.length != 0){
+		g_selText = GetSelectedText();
+		if (g_selText.length != 0){
 			vsmenu.css({"left":mouseX - 10, "top":mouseY});
 			vsmenu.show();
 			}
@@ -437,7 +451,8 @@ function NodeGraph() {
 			"padding" : "0",
 			"margin" : "0",
 			"font-size" : "9px",
-			"cursor" : "pointer"
+			"cursor" : "pointer",
+			"-webkit-border-radius" : "10px"
 		});
 
 		if(!noDelete) {
@@ -455,6 +470,7 @@ function NodeGraph() {
 				"cursor" : "pointer",
 				"font-size" : "7px",
 				"background-color" : "gray",
+				"-webkit-border-radius" : "10px",
 				"z-index" : 100
 			});
 			ex.hover(function() {
@@ -476,11 +492,13 @@ function NodeGraph() {
 		txt.css({
 			"width" : nodeWidth - 5,
 			"height" : nodeHeight - bar.height() - 5,
-			"resize" : "none",
-			"overflow" : "hidden",
+			"resize" : "auto",
+			"overflow" : "auto",
 			"font-size" : "12px",
 			"font-family" : "sans-serif",
 			"border" : "none",
+			"background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+			"-webkit-border-radius" : "10px",
 			"z-index" : 4
 		});
 
@@ -496,10 +514,11 @@ function NodeGraph() {
 			"height" : "10px",
 			"left" : nodeWidth - 11,
 			"top" : nodeHeight - 11,
-			"background-color" : "white",
+			"background-color" : "#F2F291",
 			"font-size" : "1px",
 			"border" : "1px solid gray",
-			"cursor" : "pointer"
+			"cursor" : "pointer",
+			"-webkit-border-radius" : "3px"
 		});
 
 		n.append("<div class='left'>");
