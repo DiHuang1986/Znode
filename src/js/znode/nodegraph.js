@@ -485,8 +485,8 @@ function NodeGraph() {
 				}
 			});
 		}
-
-		n.append("<textarea class='txt' spellcheck='false' />");
+        
+		n.append("<textarea class='txt' id='myText' spellcheck='false' rel='popover' data-content='Test' data-original-title='A Title'/>");
 		var txt = $(".node .txt").last();
 		txt.css("position", "absolute");
 
@@ -732,8 +732,8 @@ function NodeGraph() {
 	this.addNode = function(x, y, w, h, noDelete) {
 		return new Node(x, y, w, h, noDelete);
 	}
-	var defaultWidth = 100;
-	var defaultHeight = 50;
+	var defaultWidth = 200;
+	var defaultHeight = 100;
 
 	this.addNodeAtMouse = function() {
 		//alert("Zevan");

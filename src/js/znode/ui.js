@@ -142,6 +142,8 @@ $(function() {
         });
     });
     
+    $('#myText').popover('hide');
+    
     $('.className').live('click', function() {
         $('#comp').dialog({
             autoOpen : true,
