@@ -99,36 +99,36 @@ var Introspect = {
         return [result, " ", obj].join('');
     },
     
-    introspect_private: function(class_name, match_type_list) {
-        var obj_type = this.typeOf(class_name);
-        var results = {};
-       
-        var obj = get_object(class_name);
-        
-        if (obj_type == "object" || obj_type == "function") {
-            for (prop in obj) {
-                var property_type = this.typeOf(obj[prop]);
-                
-                for each(var match_type in match_type_list) {
-                    if (property_type == type) {
-                        results[prop] = [property_type, obj[prop]];
-                    }
-                }
-            }
-        }
-        
-        return results;        
-    },
-    
-    introspect_functions: function(class_name) {
-        var functions = this.introspect_private(class_name, ["function"]);
-        
-        return functions;
-    },
-    
-    introspect_variables: function(class_name) {
-        var variables = this.introspect_private(class_name, ["object", "number", "string", "boolean"]);
-        
-        return variables;
-    }
+    //introspect_private: function(class_name, match_type_list) {
+    //    var obj_type = this.typeOf(class_name);
+    //    var results = {};
+    //   
+    //    var obj = get_object(class_name);
+    //    
+    //    if (obj_type == "object" || obj_type == "function") {
+    //        for (prop in obj) {
+    //            var property_type = this.typeOf(obj[prop]);
+    //            
+    //            for each(var match_type in match_type_list) {
+    //                if (property_type == type) {
+    //                    results[prop] = [property_type, obj[prop]];
+    //                }
+    //            }
+    //        }
+    //    }
+    //    
+    //    return results;        
+    //},
+    //
+    //introspect_functions: function(class_name) {
+    //    var functions = this.introspect_private(class_name, ["function"]);
+    //    
+    //    return functions;
+    //},
+    //
+    //introspect_variables: function(class_name) {
+    //    var variables = this.introspect_private(class_name, ["object", "number", "string", "boolean"]);
+    //    
+    //    return variables;
+    //}
 };
