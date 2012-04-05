@@ -6,7 +6,7 @@ $(function() {
     // composition view
 
     // consider moving to NodeGraph
-    $("#canvas").mouseup(function(e) {
+    $("#canvas").mousedown(function(e) {
         if((openWin.css("display") == "none") && (openComp.css("display") == "none")) {
             var children = $(e.target).children();
             if(children.length > 0) {
