@@ -1,6 +1,8 @@
+var graph;
+
 $(function() {
 
-    var graph = new NodeGraph();
+    graph = new NodeGraph();
     // composition view
 
     // consider moving to NodeGraph
@@ -103,7 +105,7 @@ $(function() {
         // We should now take the code and parse it.
         var code = $("#textarea_code").val();
         
-        parseInit(false, code);
+        parseInit(code);
     });
     
     $("#open_js").click(function() {
@@ -185,11 +187,6 @@ function handleFiles(files) {
   }
 }
 
-function generateNodes(intellisense) {
-  // Generate new Nodes based on the classes found.
-  
-}
-
 //////////////////////////////////////////////////// Parsing API ////////////////////////////////////////////////////
 // Global variable for storing the code
 var globalCode;
@@ -202,6 +199,9 @@ function readFiles() {
     reader.onloadend = function(evt) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
             globalCode = evt.target.result;
+            generate_intellisense(globalCode);
+            graph.generateNodes();
+            $("#OpenJavascriptPopup").modal('hide');            
       }
     };
     
@@ -209,11 +209,11 @@ function readFiles() {
   }
 }
 
-function parseInit(read_file, code) {
-  if (read_file == true) {
-    readFiles();
-    code = globalCode;
-  }
+function parseInit(code) {
+    
+  generate_intellisense(code);
+
+  graph.generateNodes();
   
-  var intellisense = generate_intellisense(code);
+  $("#PasteCodePopup").modal('hide');  
 }

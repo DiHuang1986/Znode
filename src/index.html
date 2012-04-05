@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Znode</title>
-        <link rel="stylesheet" href="css/bootstrap.css" type="text/css" />
+                <link rel="stylesheet" href="css/bootstrap.css" type="text/css" />
 		<link rel="stylesheet" href="css/style.css" type="text/css" />
 		<link rel="stylesheet" href="css/jquery-ui-1.8.18.custom.css"/>
 
@@ -11,19 +11,20 @@
 		<script type="text/javascript" src="js/libs/jquery.color.js"></script>
 		<script type="text/javascript" src="js/libs/raphael.js"></script>
 		<script type="text/javascript" src="js/libs/jquery-ui-1.8.18.custom.min.js"></script>
-		<script type="text/javascript" src="js/znode/nodegraph.js"></script>
-		<script type="text/javascript" src="js/znode/ui.js"></script>
 		<script type="text/javascript" src="js/libs/jquery.highlight.js"></script>
-        <script type="text/javascript" src="js/libs/bootstrap.js"></script>
-        <script type="text/javascript" src="js/libs/bootstrap-popover.js"></script>
-                             
-        <script type="text/javascript" src="js/intellisense/introspect.js"></script>
-        <script type="text/javascript" src="js/intellisense/utils.js"></script>
-        <script type="text/javascript" src="js/intellisense/data_types.js"></script>
-        <script type="text/javascript" src="js/intellisense/intellisense.js"></script>
-        <script type="text/javascript" src="js/intellisense/parse-js.js"></script>
-        <script type="text/javascript" src="js/intellisense/process.js"></script>
-        <script type="text/javascript" src="js/intellisense/api.js"></script>        
+                <script type="text/javascript" src="js/libs/bootstrap.js"></script>
+                <script type="text/javascript" src="js/libs/bootstrap-popover.js"></script>
+                
+                <script type="text/javascript" src="js/intellisense/introspect.js"></script>
+                <script type="text/javascript" src="js/intellisense/utils.js"></script>
+                <script type="text/javascript" src="js/intellisense/data_types.js"></script>
+                <script type="text/javascript" src="js/intellisense/intellisense.js"></script>
+                <script type="text/javascript" src="js/intellisense/parse-js.js"></script>
+                <script type="text/javascript" src="js/intellisense/process.js"></script>
+                <script type="text/javascript" src="js/intellisense/api.js"></script>
+                
+		<script type="text/javascript" src="js/znode/nodegraph.js"></script>
+		<script type="text/javascript" src="js/znode/ui.js"></script>                
 	</head>
 	<body>
 		<div id="openWin">
@@ -39,148 +40,106 @@
 		    <div id="classNames"></div>
 		</div>
 		<div id="overlay"></div>
-        <!-- Add the Topbar from Bootstrap -->
-        <div id="top_toolbar" class="navbar">
-            <div class="navbar-inner">
-              <div class="container">
-                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                  <span class="icon-bar"></span>
-                  <span class="icon-bar"></span>
-                  <span class="icon-bar"></span>
-                </a>
-                <a class="brand" href="#">ZNode</a>
-                <div class="nav-collapse">
+                <!-- Add the Topbar from Bootstrap -->
+                <div id="top_toolbar" class="navbar">
+                    <div class="navbar-inner">
+                      <div class="container">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                          <span class="icon-bar"></span>
+                          <span class="icon-bar"></span>
+                          <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="#">ZNode</a>
+                        <div class="nav-collapse">
+                          
+                          <!-- File Dropdown -->
+                          <ul class="nav">
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">File <b class="caret"></b></a>
+                              <ul id="file_dropdown" class="dropdown-menu">
+                                <li><a id="open_json">Open Json Files</a></li>
+                                <li><a id="open_js">Open Javascript Files</a></li>
+                                <li><a id="paste_code">Paste Code</a></li>
+                                <li class="divider"></li>
+                                <li><a id="save">Save</a></li>
+                              </ul>
+                            </li>
+                          </ul>
+                          
+                          <!-- Views Dropdown -->
+                          <ul class="nav">
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">View <b class="caret"></b></a>
+                              <ul id="view_dropdown" class="dropdown-menu">
+                                <li><a id="analyze_code">Analyze Code</a></li>
+                                <li class="divider"></li>
+                                <li><a id="inheritance_view">Inheritance View</a></li>
+                                <li><a id="composition_view">Composition View</a></li>
+                                <li><a id="resource_view">Resource View</a></li>
+                                <li class="divider"></li>
+                                <li><a id="clear_canvas">Clear Canvas</a></li>
+                              </ul>
+                            </li>
+                          </ul>                  
+                          
+                          <!-- Help Dropdown -->
+                          <ul class="nav pull-right">
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <b class="caret"></b></a>
+                              <ul class="dropdown-menu">
+                                <li><a id="about">About</a></li>
+                              </ul>
+                            </li>
+                          </ul>
+                          
+                          <form class="navbar-search pull-right" action="">
+                            <input type="text" class="search-query span2" placeholder="Name :">
+                          </form>
+                        </div><!-- /.nav-collapse -->
+                      </div>
+                    </div><!-- /navbar-inner -->
+                  </div>        
+  
+                  <!-- Main Canvas for drawing -->
+                          <div id="canvas"></div>
                   
-                  <!-- File Dropdown -->
-                  <ul class="nav">
-                    <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">File <b class="caret"></b></a>
-                      <ul id="file_dropdown" class="dropdown-menu">
-                        <li><a id="open_json">Open Json Files</a></li>
-                        <li><a id="open_js">Open Javascript Files</a></li>
-                        <li><a id="paste_code">Paste Code</a></li>
-                        <li class="divider"></li>
-                        <li><a id="save">Save</a></li>
-                      </ul>
-                    </li>
-                  </ul>
+                  <div class="modal hide fade popup" id="PasteCodePopup">
+                      <div class="modal-header">
+                          <a class="close" data-dismiss="modal">x</a>
+                          <h3><center>Paste Code</center></h3>
+                      </div>
+                      <div class="modal-body">
+                        <textarea id="textarea_code"></textarea>
+                      </div>
+                      <div class="modal-footer">
+                          <a class="btn" id="paste_code_close_button">Close</a>
+                          <a class="btn btn-primary" id="parse_button">Parse</a>
+                      </div>
+                  </div>
                   
-                  <!-- Views Dropdown -->
-                  <ul class="nav">
-                    <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">View <b class="caret"></b></a>
-                      <ul id="view_dropdown" class="dropdown-menu">
-                        <li><a id="analyze_code">Analyze Code</a></li>
-                        <li class="divider"></li>
-                        <li><a id="inheritance_view">Inheritance View</a></li>
-                        <li><a id="composition_view">Composition View</a></li>
-                        <li><a id="resource_view">Resource View</a></li>
-                        <li class="divider"></li>
-                        <li><a id="clear_canvas">Clear Canvas</a></li>
-                      </ul>
-                    </li>
-                  </ul>                  
-                  
-                  <!-- Help Dropdown -->
-                  <ul class="nav pull-right">
-                    <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <b class="caret"></b></a>
-                      <ul class="dropdown-menu">
-                        <li><a id="about">About</a></li>
-                      </ul>
-                    </li>
-                  </ul>
-                  
-                  <form class="navbar-search pull-right" action="">
-                    <input type="text" class="search-query span2" placeholder="Name :">
-                  </form>
-                </div><!-- /.nav-collapse -->
-              </div>
-            </div><!-- /navbar-inner -->
-          </div>        
-        <!-- This Toolbar can go -->        
-        
-        <!--
-		<div id="controls">
-			<div id="logo" >
-				Znode
-			</div>
-			<div id="save" class="btn_">
-				Save
-			</div>
-			<div id="open" class="btn_">
-				Open
-			</div>
-            <div id="open_js" class="btn_">
-                Open Javascript
-            </div>            
-            <div id="paste_code" class="btn_">
-                Paste Code
-            </div>
-			<div id="clear" class="btn_">
-				Clear All
-			</div>
-			<div id="inheritance" class="btn_">
-                Inheritance
-            </div>
-            <div id="composition" class="btn_">
-                Composition
-            </div>
-            <div id="resources" class="btn_">
-                Resources
-            </div>
-			<div id="help" class="btn_">
-				Help
-			</div>
-			<div id="saveForm">
-				<form id="nameForm">
-					Name :
-					<input type="text" name="filename" id="filename" spellcheck="false"/>
-				</form>
-			</div>
-		</div>
-        -->
-        
-        <!-- Main Canvas for drawing -->
-		<div id="canvas"></div>
-        
-        <div class="modal hide fade popup" id="PasteCodePopup">
-            <div class="modal-header">
-                <a class="close" data-dismiss="modal">x</a>
-                <h3><center>Paste Code</center></h3>
-            </div>
-            <div class="modal-body">
-              <textarea id="textarea_code"></textarea>
-            </div>
-            <div class="modal-footer">
-                <a class="btn" id="paste_code_close_button">Close</a>
-                <a class="btn btn-primary" id="parse_button">Parse</a>
-            </div>
-        </div>
-        
-        <div class="modal hide fade popup" id="OpenJavascriptPopup">
-            <div class="modal-header">
-                <a class="close" data-dismiss="modal">x</a>
-                <h3><center>Open Javascript Code</center></h3>
-            </div>
-            <div class="modal-body">
-            <table id="js_table" class="table table-striped table-bordered table-condensed">
-              <thead>
-                <tr><th><center>Files</center></th></tr>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-            </div>
-            <div class="modal-footer">
-                <span class="btn btn-success fileinput-button">
-                    <i class="icon-plus icon-white"></i>
-                    <span>Add files...</span>
-                    <input type="file" name="files[]" multiple=""  onchange="handleFiles(this.files);">
-                </span>                       
-                <a class="btn" id="open_javascript_close_button">Close</a>
-                <a class="btn btn-primary" id="parse_button" onclick="readFiles();">Parse</a>
-            </div>
-        </div>        
+                  <div class="modal hide fade popup" id="OpenJavascriptPopup">
+                      <div class="modal-header">
+                          <a class="close" data-dismiss="modal">x</a>
+                          <h3><center>Open Javascript Code</center></h3>
+                      </div>
+                      <div class="modal-body">
+                      <table id="js_table" class="table table-striped table-bordered table-condensed">
+                        <thead>
+                          <tr><th><center>Files</center></th></tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                      </table>
+                      </div>
+                      <div class="modal-footer">
+                          <span class="btn btn-success fileinput-button">
+                              <i class="icon-plus icon-white"></i>
+                              <span>Add files...</span>
+                              <input type="file" name="files[]" multiple=""  onchange="handleFiles(this.files);">
+                          </span>                       
+                          <a class="btn" id="open_javascript_close_button">Close</a>
+                          <a class="btn btn-primary" id="parse_button" onclick="parseInit(true);">Parse</a>
+                      </div>
+                  </div>        
 	</body>
 </html>

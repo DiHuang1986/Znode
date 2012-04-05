@@ -37,12 +37,6 @@ function type_object() {
     }
 }
 
-//extend(type_function, type_object);
-//extend(type_expression, type_object);
-//extend(type_usage, type_object);
-//extend(assign_expression, type_object);
-//extend(binary_expression, type_object);
-
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function global_node() {
     // object dictionary - Stores the name and objects for every major "defun" function & global
@@ -159,6 +153,7 @@ function type_function() {
     this.ast = new_args[2];
     this.arguments = new_args[3];
     this.return_obj = null;
+    this.source_code = gen_code(this.ast, {beautify: true});
     
     this.super_classes = [];
     this.sub_classes   = [];
@@ -170,6 +165,10 @@ function type_function() {
     
     this.class_members  = {};
         
+    this.get_source_code = function() {
+        return this.source_code;
+    }
+    
     this.is_class_member_present = function(name) {
         return this.class_members.hasOwnProperty(name);
     }

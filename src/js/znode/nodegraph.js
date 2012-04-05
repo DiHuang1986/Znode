@@ -1,3 +1,6 @@
+var defaultNodeWidth = 200;
+var defaultNodeHeight = 100;
+
 function NodeGraph() {
 	var win = $(window);
 	var canvas = $("#canvas");
@@ -385,14 +388,17 @@ function NodeGraph() {
 		return selText;
 	}
 
-	function Node(xp, yp, w, h, noDelete, forceId) {
+	function Node(xp, yp, w, h, intellisense_obj, noDelete, forceId) {
         
 		if(forceId) {
 			nodeId = forceId;
 		}
+		
 		this.id = nodeId;
 		nodes[nodeId] = this;
 		nodeId++;
+		
+		this.intellisenseObj = intellisense_obj;
 
 		var curr = this;
 		this.connections = {};
@@ -407,6 +413,14 @@ function NodeGraph() {
           var id = "#node_text_" + this.id;
           $(id).popover('hide');
         }
+		
+		this.getIntellisenseObjName = function() {
+				if (this.intellisenseObj == undefined) {
+				    return "Undefined";
+				}
+				
+				return this.intellisenseObj.name;
+		}
         
 		canvas.append("<div class='node'/>");
 		var n = $(".node").last();
@@ -447,7 +461,7 @@ function NodeGraph() {
 		var nodeWidth = n.width();
 		var nodeHeight = n.height();
 
-		n.append("<div class='bar'><center><b>Test</center></div>");
+		n.append("<div class='bar'><center><b>" + this.getIntellisenseObjName() + "</center></div>");
 		var bar = $(".node .bar").last();
 		bar.css({
             "border-top-left-radius": "8px",
@@ -494,7 +508,7 @@ function NodeGraph() {
 			});
 		}
         
-		n.append("<textarea class='txt' id='node_text_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='Test' data-original-title='A Title'/>");
+		n.append("<textarea class='txt' id='node_text_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
 		var txt = $(".node .txt").last();
 		txt.css("position", "absolute");
 
@@ -511,6 +525,8 @@ function NodeGraph() {
 		});
 
 		this.txt = txt;
+		
+		$("#node_text_" + this.id).attr('data-content', this.intellisenseObj.get_source_code());
 
 		n.append("<div class='resizer' />");
 		var resizer = $(".node .resizer").last();
@@ -552,6 +568,8 @@ function NodeGraph() {
 		positionRight();
 		positionTop();
 		positionBottom();
+		
+		this.PopoverHide();
 
 		this.left = left;
 		this.right = right;
@@ -731,7 +749,7 @@ function NodeGraph() {
 
 	this.clearAll = function() {
 		clear();
-		defaultNode();
+		// defaultNode();
 		currentConnection = null;
 		currenNode = null;
 	}
@@ -739,28 +757,47 @@ function NodeGraph() {
 	this.addNode = function(x, y, w, h, noDelete) {
 		return new Node(x, y, w, h, noDelete);
 	}
-	var defaultWidth = 200;
-	var defaultHeight = 100;
 
 	this.addNodeAtMouse = function() {
-		//alert("Zevan");
-		var w = currentNode.width() || defaultWidth;
-		var h = currentNode.height() || defaultHeight;
+    var w, h;
+    if (currentNode == undefined) {
+				w = defaultNodeWidth;
+				h = defaultNodeHeight;
+		}
+		else {
+				w = currentNode.width() || defaultNodeWidth;
+				h = currentNode.height() || defaultNodeHeight;
+	  }
 		var temp = new Node(mouseX, mouseY + 40, w, h);
-        temp.PopoverHide();
+    temp.PopoverHide();
 		currentNode = temp;
 		currentConnection = null;
 	}
-	function defaultNode() {
-
-		var temp = new Node(win.width() / 2 - defaultWidth / 2, win.height() / 2 - defaultHeight / 2, defaultWidth, defaultHeight, true);
-		temp.txt[0].focus();
-		currentNode = temp;
-        temp.PopoverHide();
-	}
-
-	defaultNode();
-
+	
+	this.generateNodes = function() {
+    var intellisense = GlobalIntellisenseRoot;
+    // Generate new Nodes based on the classes found.
+    var startx = 50; var starty = 100; 
+    for (var key in intellisense.defun) {
+        var obj = intellisense.defun[key];
+        var node = new Node(startx, starty, defaultNodeWidth, defaultNodeHeight, obj, false);
+        startx += defaultNodeWidth + 20;
+        node.txt[0].focus();
+        currentNode = node;
+    }
+  }
+	
+	
+	//function defaultNode() {
+	//	var temp = new Node(win.width() / 2 - defaultNodeWidth / 2, win.height() / 2 - defaultNodeHeight / 2, defaultNodeWidth, defaultNodeHeight, true);
+	//	temp.txt[0].focus();
+	//	currentNode = temp;
+	//	temp.PopoverHide();
+	//}
+	//
+	//defaultNode();
+	
+	
 	this.fromJSON = function(data) {
 		clear();
 		for(var i in data.nodes) {
