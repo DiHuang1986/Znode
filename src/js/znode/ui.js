@@ -35,7 +35,8 @@ $(function() {
         graph.clearAll();
     });
     $("#help").click(function() {
-        window.open("http://www.zreference.com/znode", "_blank");
+        // replace with something else
+        //window.open("http://www.zreference.com/znode", "_blank");
     });
     $('#inheritance').click(function() {
         // open up a menu with class names
@@ -50,6 +51,7 @@ $(function() {
     });
     $('#composition').click(function() {
         var classNames = $('#classNames');
+        classNames.html('');
         openComp.fadeIn();
         classNames.append("<div class='className'>Class Name 1<\/div>");
         classNames.append("<div class='className'>Class Name 2<\/div>");
