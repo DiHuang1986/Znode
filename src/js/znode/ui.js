@@ -22,7 +22,7 @@ $(function() {
     var openComp = $('#openComp');
     openComp.hide();
 
-    $(".btn").mouseenter(function() {
+    $(".btn_").mouseenter(function() {
         $(this).animate({
             "backgroundColor" : "white"
         }, 200);
@@ -50,7 +50,6 @@ $(function() {
     });
     $('#composition').click(function() {
         var classNames = $('#classNames');
-        classNames.html('');
         openComp.fadeIn();
         classNames.append("<div class='className'>Class Name 1<\/div>");
         classNames.append("<div class='className'>Class Name 2<\/div>");
@@ -87,6 +86,25 @@ $(function() {
         openWin.fadeIn();
         fileList.load("json/files.php?" + Math.random() * 1000000);
     });
+    
+    $("#paste_code").click(function() {
+        $("#PasteCodePopup").modal('show');
+    });
+    
+    $("#close_button").click(function() {
+        $("#PasteCodePopup").modal('hide');
+    })
+    
+    $("#parse_button").click(function() {
+        // We should now take the code and parse it.
+        var code = $("#textarea_code").val();
+        
+        var gen_code = generate_intellisense(code);
+        
+        // Generate the Intellisense Code
+        document.getElementById("textarea_code").value = gen_code;
+    });
+    
     var nameMessage = "Enter your file name";
     var filename = $("#filename").val(nameMessage);
 
