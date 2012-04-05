@@ -1,3 +1,6 @@
-Znode is a minimalistic browser based flowchart editor.
+ZNode - Source Code Visualizer
 
-For more information see this link: http://zreference.com/znode/
+- To use the file reading functionality, change directory to src/ and run 
+ "python -m SimpleHTTPServer". This is because Google Chrome doesn't allow local files to be read because of security issues. (Firefox does but currently our stylesheets don't work in Firefox).
+
+- To use the Paste code, just paste javascript code into the text box. Use the files in test_files/, files for currently testing the parser and intellisense information.

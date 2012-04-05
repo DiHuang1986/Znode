@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<title>Znode</title>
+    <head>
+        <meta charset="utf-8" />
+        <title>Znode</title>
                 <link rel="stylesheet" href="css/bootstrap.css" type="text/css" />
-		<link rel="stylesheet" href="css/style.css" type="text/css" />
-		<link rel="stylesheet" href="css/jquery-ui-1.8.18.custom.css"/>
+        <link rel="stylesheet" href="css/style.css" type="text/css" />
+        <link rel="stylesheet" href="css/jquery-ui-1.8.18.custom.css"/>
 
-		<script type="text/javascript" src="js/libs/jquery-1.7.1.min.js"></script>
-		<script type="text/javascript" src="js/libs/jquery.color.js"></script>
-		<script type="text/javascript" src="js/libs/raphael.js"></script>
-		<script type="text/javascript" src="js/libs/jquery-ui-1.8.18.custom.min.js"></script>
-		<script type="text/javascript" src="js/libs/jquery.highlight.js"></script>
+        <script type="text/javascript" src="js/libs/jquery-1.7.1.min.js"></script>
+        <script type="text/javascript" src="js/libs/jquery.color.js"></script>
+        <script type="text/javascript" src="js/libs/raphael.js"></script>
+        <script type="text/javascript" src="js/libs/jquery-ui-1.8.18.custom.min.js"></script>
+        <script type="text/javascript" src="js/libs/jquery.highlight.js"></script>
                 <script type="text/javascript" src="js/libs/bootstrap.js"></script>
                 <script type="text/javascript" src="js/libs/bootstrap-popover.js"></script>
                 
@@ -23,23 +23,23 @@
                 <script type="text/javascript" src="js/intellisense/process.js"></script>
                 <script type="text/javascript" src="js/intellisense/api.js"></script>
                 
-		<script type="text/javascript" src="js/znode/nodegraph.js"></script>
-		<script type="text/javascript" src="js/znode/ui.js"></script>                
-	</head>
-	<body>
-		<div id="openWin">
-			<div id="fileTitle">
-				Files:
-			</div>
-			<div id="files"></div>
-		</div>
-		<div id="openComp">
-		    <div id="fileTitle">
-		        Please select a class name:
-		    </div>
-		    <div id="classNames"></div>
-		</div>
-		<div id="overlay"></div>
+        <script type="text/javascript" src="js/znode/nodegraph.js"></script>
+        <script type="text/javascript" src="js/znode/ui.js"></script>                
+    </head>
+    <body>
+        <div id="openWin">
+            <div id="fileTitle">
+                Files:
+            </div>
+            <div id="files"></div>
+        </div>
+        <div id="openComp">
+            <div id="fileTitle">
+                Please select a class name:
+            </div>
+            <div id="classNames"></div>
+        </div>
+        <div id="overlay"></div>
                 <!-- Add the Topbar from Bootstrap -->
                 <div id="top_toolbar" class="navbar">
                     <div class="navbar-inner">
@@ -138,8 +138,8 @@
                               <input type="file" name="files[]" multiple=""  onchange="handleFiles(this.files);">
                           </span>                       
                           <a class="btn" id="open_javascript_close_button">Close</a>
-                          <a class="btn btn-primary" id="parse_button" onclick="parseInit(true);">Parse</a>
+                          <a class="btn btn-primary" id="parse_button" onclick="readFiles();">Parse</a>
                       </div>
                   </div>        
-	</body>
+    </body>
 </html>

@@ -105,7 +105,7 @@ $(function() {
         // We should now take the code and parse it.
         var code = $("#textarea_code").val();
         
-        parseInit(code);
+        parseInit(code, "#PasteCodePopup");
     });
     
     $("#open_js").click(function() {
@@ -199,9 +199,7 @@ function readFiles() {
     reader.onloadend = function(evt) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
             globalCode = evt.target.result;
-            generate_intellisense(globalCode);
-            graph.generateNodes();
-            $("#OpenJavascriptPopup").modal('hide');            
+            parseInit(globalCode, "#OpenJavascriptPopup");           
       }
     };
     
@@ -209,11 +207,11 @@ function readFiles() {
   }
 }
 
-function parseInit(code) {
+function parseInit(code, node_str) {
     
   generate_intellisense(code);
 
   graph.generateNodes();
   
-  $("#PasteCodePopup").modal('hide');  
+  $(node_str).modal('hide');  
 }
