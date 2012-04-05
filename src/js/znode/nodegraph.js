@@ -758,24 +758,28 @@ function NodeGraph() {
         else {
                 w = currentNode.width() || defaultNodeWidth;
                 h = currentNode.height() || defaultNodeHeight;
-      }
-        var temp = new Node(mouseX, mouseY + 40, w, h);
+            }
+        var temp = this.addNode(mouseX, mouseY + 40, w, h);
         temp.PopoverHide();
         currentNode = temp;
         currentConnection = null;
     }
     
     this.generateNodes = function() {
+    
     var intellisense = GlobalIntellisenseRoot;
     // Generate new Nodes based on the classes found.
     var startx = 50; var starty = 100; 
     for (var key in intellisense.defun) {
         var obj = intellisense.defun[key];
-        var node = new Node(startx, starty, defaultNodeWidth, defaultNodeHeight, obj, false);
+        var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
         startx += defaultNodeWidth + 20;
         node.txt[0].focus();
         currentNode = node;
     }
+
+    // This is how we create an automatic connection between 2 nodes.
+    // createConnection(nodes[0], "right", nodes[1], "left");
   }
     
     
