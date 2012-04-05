@@ -132,6 +132,18 @@ function walk_tree(ast) {
             binary_expr.binary_lhs = walk_tree(ast[2]);
             binary_expr.binary_rhs = walk_tree(ast[3]);
         },
+
+        "if": function() {
+           // do nothing now.
+        },
+
+        "do" : function() {
+
+        },
+
+        "while" : function() {
+            
+        },
     }
     
     this.parent = ast[0];
@@ -143,18 +155,19 @@ function walk_tree(ast) {
     } else {
         token_str = this.parent;
     }
+
+    // Debug Code... If we encounter something for which we haven't speculated yet. Lets see it
+    var myImplementedList = ["binary", "num", "string", "return", "defun", "call", "function", "new", "name", "dot", "stat", "var", "assign"];
+
+    if (myImplementedList.indexOf(token_str) == -1)
+        alert(token_str);
     
     var func = walker[token_str];
     
-    return func(ast);
-}
+    if (func == undefined)
+        return undefined;
 
-var _is_ = {    
-    "prototype" : function(ast) {
-        var serialized_ast = get_serialized_ast(ast);
-        var is_prototype_stmt = array_contains_type(serialized_ast, "prototype");
-        return is_prototype_stmt;
-    }
+    return func(ast);
 }
 
 function parse_defun(func_name, ast) {
@@ -176,7 +189,8 @@ function parse_call(ast) {
         usage_obj.line = call_obj.token.start.line;
         
         // Get the object for this one.
-        var call_function_obj = type_object_factory(call_obj.name, type_function, call_obj.token, null, null);
+        // var call_function_obj = type_object_factory(call_obj.name, type_function, call_obj.token, null, ["defun", ast[1], ["toplevel", [ast]], ast[2]]);
+        var call_function_obj = type_object_factory(call_obj.name, type_function_call, call_obj.token, null, null);
         call_function_obj.add_usage(usage_obj);
     }
     

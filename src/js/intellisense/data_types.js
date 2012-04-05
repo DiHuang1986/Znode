@@ -37,105 +37,6 @@ function type_object() {
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-function global_node() {
-    // object dictionary - Stores the name and objects for every major "defun" function & global
-    // variables found
-    this.obj_dict = {};
-    this.defun = {};
-    this.global_vars = {};
-    
-    this._add_global_obj = function(global_var_name, global_var_obj) {
-        this.obj_dict[global_var_name] = global_var_obj;
-    }
-    
-    this._add_global_var = function(global_var_name, global_var_obj) {
-        this.global_vars[global_var_name] = global_var_obj;
-    }
-    
-    this._add_global_func = function(global_var_name, global_func_obj) {
-        this.defun[global_var_name] = global_func_obj;
-    }
-    
-    this.add_obj = function(obj_type, obj) {
-        switch(obj_type) {
-            case "global_var":
-                this._add_global_var(obj.name, obj);
-                this._add_global_obj(obj.name, obj);
-                break;
-            
-            case "defun":
-                this._add_global_func(obj.name, obj);
-                this._add_global_obj(obj.name, obj);
-                break;
-        }
-    }
-    
-    this.get_single_defun = function(name) {
-        return this.defun[name];
-    }
-    
-    this.get_single_global_var = function(name) {
-        return this.global_vars[name];
-    }
-    
-    this.is_global_var_present = function(name) {
-        return this.global_vars.hasOwnProperty(name);
-    }
-    
-    this.is_defun_present = function(name) {
-        return this.defun.hasOwnProperty(name);
-    }
-    
-    // Names stored in Global Object dictionary. This will
-    // help to locate all global and local variables
-    this.is_present_in_object_dictionary = function(name) {
-        return this.obj_dict.hasOwnProperty(name);
-    }
-    
-    this.add_to_object_dictionary = function(name, obj) {
-        // If object already present, copy over the usage
-        // This case will happen when we encounter an object name
-        // we haven't seen before
-        if (this.is_present_in_object_dictionary(name)) {
-            var old_obj = this.obj_dict[name];
-            obj.usage.concat(old_obj.usage);
-        }
-        
-        this.obj_dict[name] = obj;
-    }
-    
-    this.toString = function() {
-        var str = "Global Classes\
-                   ----------------\n";
-        // Display the global classes first
-        for (var key in this.defun) {
-            str += this.defun[key].toString() + "\n";
-        }
-        
-        str += "\nGlobal Variables\
-                --------------------\n";
-        
-        // Display all the global variables
-        for (var key in this.global_vars) {
-            str += this.global_vars[key].toString() + "\n";
-        }
-        
-        return str;
-    }
-    
-    // Getter Functions
-    this.get_global_classes = function() {
-        return this.defun;
-    }
-    
-    this.get_global_variables = function() {
-        return this.global_vars;
-    }
-}
-
-var GlobalIntellisenseRoot = new global_node();
-
 // type = "defun" || "function"
 function type_function() {
     // type = arguments[0]
@@ -300,10 +201,16 @@ function type_usage() {
     this.line = -1;
 }
 
-type_function.prototype     = new type_object;
-type_expression.prototype   = new type_object;
-assign_expression.prototype = new type_object;
-binary_expression.prototype = new type_object;
+function type_function_call() {
+    type_object.call(this);
+    this.ast = null;  
+}
+
+type_function.prototype      = new type_object;
+type_expression.prototype    = new type_object;
+assign_expression.prototype  = new type_object;
+binary_expression.prototype  = new type_object;
+type_function_call.prototype = new type_object;
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
@@ -340,4 +247,103 @@ function get_qualified_name(name, parent) {
     }
     
     return obj_qualified_name;
-} 
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+function global_node() {
+    // object dictionary - Stores the name and objects for every major "defun" function & global
+    // variables found
+    this.obj_dict = {};
+    this.defun = {};
+    this.global_vars = {};
+
+    this._add_global_obj = function (global_var_name, global_var_obj) {
+        this.obj_dict[global_var_name] = global_var_obj;
+    }
+
+    this._add_global_var = function (global_var_name, global_var_obj) {
+        this.global_vars[global_var_name] = global_var_obj;
+    }
+
+    this._add_global_func = function (global_var_name, global_func_obj) {
+        this.defun[global_var_name] = global_func_obj;
+    }
+
+    this.add_obj = function (obj_type, obj) {
+        switch (obj_type) {
+            case "global_var":
+                this._add_global_var(obj.name, obj);
+                this._add_global_obj(obj.name, obj);
+                break;
+
+            case "defun":
+                this._add_global_func(obj.name, obj);
+                this._add_global_obj(obj.name, obj);
+                break;
+        }
+    }
+
+    this.get_single_defun = function (name) {
+        return this.defun[name];
+    }
+
+    this.get_single_global_var = function (name) {
+        return this.global_vars[name];
+    }
+
+    this.is_global_var_present = function (name) {
+        return this.global_vars.hasOwnProperty(name);
+    }
+
+    this.is_defun_present = function (name) {
+        return this.defun.hasOwnProperty(name);
+    }
+
+    // Names stored in Global Object dictionary. This will
+    // help to locate all global and local variables
+    this.is_present_in_object_dictionary = function (name) {
+        return this.obj_dict.hasOwnProperty(name);
+    }
+
+    this.add_to_object_dictionary = function (name, obj) {
+        // If object already present, copy over the usage
+        // This case will happen when we encounter an object name
+        // we haven't seen before
+        if (this.is_present_in_object_dictionary(name)) {
+            var old_obj = this.obj_dict[name];
+            obj.usage.concat(old_obj.usage);
+        }
+
+        this.obj_dict[name] = obj;
+    }
+
+    this.toString = function () {
+        var str = "Global Classes\
+                   ----------------\n";
+        // Display the global classes first
+        for (var key in this.defun) {
+            str += this.defun[key].toString() + "\n";
+        }
+
+        str += "\nGlobal Variables\
+                --------------------\n";
+
+        // Display all the global variables
+        for (var key in this.global_vars) {
+            str += this.global_vars[key].toString() + "\n";
+        }
+
+        return str;
+    }
+
+    // Getter Functions
+    this.get_global_classes = function () {
+        return this.defun;
+    }
+
+    this.get_global_variables = function () {
+        return this.global_vars;
+    }
+}
+
+var GlobalIntellisenseRoot = new global_node();

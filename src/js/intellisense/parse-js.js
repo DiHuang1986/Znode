@@ -782,8 +782,9 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                                 parse_defun(arguments[1], ast);
                                 this.entered_defun = false;
                                 break;
-                                
+
                             case "stat":
+                                // Check if the ast is a prototype stmt or not.
                                 if (_is_['prototype'](ast)) {
                                     parse_prototype_ast(ast);
                                 }
