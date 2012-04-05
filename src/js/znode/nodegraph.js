@@ -525,8 +525,8 @@ function NodeGraph() {
 		});
 
 		this.txt = txt;
-		
-		$("#node_text_" + this.id).attr('data-content', this.intellisenseObj.get_source_code());
+	        if (this.intellisenseObj != null)	
+    		    $("#node_text_" + this.id).attr('data-content', this.intellisenseObj.get_source_code());
 
 		n.append("<div class='resizer' />");
 		var resizer = $(".node .resizer").last();
