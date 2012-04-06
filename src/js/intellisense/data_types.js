@@ -15,6 +15,7 @@ function type_object() {
     this.child = null;
     this.value = null;
     this.token = null;
+    this.initial_data_type = null; // Only valid for variables
     this.usage = {};
     
     this.toString = function() {

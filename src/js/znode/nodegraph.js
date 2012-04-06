@@ -57,13 +57,6 @@ function NodeGraph() {
     });
     vsmenu.hide();
     
-    // the jQuery dialog divs
-    //canvas.append("<div id='inher' title='Inheritance'>This is the inheritance view<\/div>");
-    //canvas.append("<div id='comp' title='Composition'>This is the composition view<\/div>");
-    //canvas.append("<div id='global' title='Global Variables'>This is the global variables view<\/div>");
-    //canvas.append("<div id='function' title='Functions'>This is the functions view<\/div>");
-    //canvas.append("<div id='res' title='Resources'>This is the resources view<\/div>");
-
     canvas.append("<div id='hit' />");
     hitConnect = $("#hit");
     hitConnect.css({
@@ -413,7 +406,7 @@ function NodeGraph() {
                 return "Undefined";
             }
 
-            return this.intellisenseObj.name;
+            return getTokenDisplayName(this.intellisenseObj.type) + ": " + this.intellisenseObj.name;
         }
 
         this.getID = function () {
@@ -437,6 +430,9 @@ function NodeGraph() {
             "-webkit-border-radius" : "10px"
         });
         n.css("z-index", zindex++);
+
+        if (this.intellisenseObj.type == "global_var")
+            n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
 
         n.mouseup(function(){
         g_selText = GetSelectedText();
@@ -462,6 +458,22 @@ function NodeGraph() {
         }
         var nodeWidth = n.width();
         var nodeHeight = n.height();
+
+        this.getSourceCode = function () {
+            if (this.intellisenseObj != null) {
+
+                if (this.intellisenseObj.type == "defun" || this.intellisenseObj.type == "function")
+                    return this.intellisenseObj.get_source_code();
+
+                if (this.intellisenseObj.type == "global_var") {
+                    var str = "Initial Data Definition: " + this.intellisenseObj.initial_data_type;
+                    str += "\nInitial Value: " + this.intellisenseObj.value;
+                    return str;
+                }
+            }
+
+            return "No Source Defined";
+        }
 
         n.append("<div class='bar'><center><b>" + this.getIntellisenseObjName() + "</center></div>");
         var bar = $(".node .bar").last();
@@ -527,20 +539,15 @@ function NodeGraph() {
             "z-index" : 4
         });
 
+        if (this.intellisenseObj.type == "global_var")
+            txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
+
         this.txt = txt;
-        if (this.intellisenseObj != null) {
-            var src_code = this.intellisenseObj.get_source_code();
-            $("#node_text_" + this.id).attr('data-original-title', "Class: " + this.getIntellisenseObjName());
-            $("#node_text_" + this.id).attr('data-content', src_code);
-        }
+        var src_code = this.getSourceCode();
+        $("#node_text_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
+        $("#node_text_" + this.id).attr('data-content', src_code);
 
-        this.getSourceCode = function() {
-            if (this.intellisenseObj != null) {
-                return this.intellisenseObj.get_source_code();
-            }
 
-            return "No Source Defined";
-        }
 
         n.append("<div class='resizer' />");
         var resizer = $(".node .resizer").last();
@@ -805,7 +812,7 @@ function NodeGraph() {
             startx += defaultNodeWidth + 20;
             if (startx > win.width()) {
                 startx = 50;
-                starty += 20;
+                starty += defaultNodeHeight + 20;
             }
             node.txt[0].focus();
             currentNode = node;
@@ -814,15 +821,31 @@ function NodeGraph() {
         // This is how we create an automatic connection between 2 nodes.
         // createConnection(nodes[0], "right", nodes[1], "left");
         this.generateConnections();
+
+        // Now load the global variables 
+        for (var key in intellisense.global_vars) {
+            var obj = intellisense.global_vars[key];
+            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+            node_name_id_mapping[obj.name] = node.getID();
+            startx += defaultNodeWidth + 20;
+
+            if (startx > win.width()) {
+                startx = 50;
+                starty += defaultNodeHeight + 20;
+            }
+
+            node.txt[0].focus();
+            currentNode = node;
+        }
     }
     
     // Generate Connections between the nodes based on the inheritance data
     this.generateConnections = function () {
         var intellisense = GlobalIntellisenseRoot;
         // For all global classes find it's parent
-        for (var key in nodes) {
-            var node = nodes[key];
-            var obj = nodes[key].getIntellisenseObj();
+        for (var key in intellisense.defun) {
+            var obj = intellisense.defun[key];
+            var node = this.getNodeFromName(obj.name);
 
             // Now find all its parents and connect them
             for (var i = 0; i < obj.super_classes.length; ++i) {

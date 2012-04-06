@@ -218,14 +218,24 @@ function parse_global_vars(ast) {
     var left_expr_usage_obj = create_usage_object(left_expr.name, ast, left_expr.token.start.line);    
     
     if (GlobalIntellisenseRoot.is_defun_present(right_expr.name)) {
-        right_expr.type = "function";
+        right_expr.type = "defun";
     }
     else if (GlobalIntellisenseRoot.is_global_var_present(right_expr.name)) {
         right_expr.type = "global_var";
     }       
     
     left_expr.add_usage(left_expr_usage_obj, right_expr.type);
-    
+    left_expr.type = "global_var";
+
+    // Set the value for the left expression.
+    left_expr.value = right_expr.value;
+    if (right_expr.type == "defun") {
+        left_expr.initial_data_type = "Function";
+        left_expr.value = right_expr.name;
+    }
+    else
+        left_expr.initial_data_type = right_expr.type;
+
     GlobalIntellisenseRoot.add_obj("global_var", left_expr);
 }
 

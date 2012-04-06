@@ -77,3 +77,16 @@ var _is_ = {
         return is_prototype_stmt;
     },
 }
+
+function getTokenDisplayName(token_name) {
+    switch(token_name) {
+        case "defun":
+        case "function":
+            return "Function";
+            break;
+
+        case "global_var":
+            return "Globals";
+            break;
+    }
+}
