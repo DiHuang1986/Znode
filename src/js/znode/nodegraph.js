@@ -11,6 +11,7 @@ function NodeGraph() {
     var connectionId = 0;
     var newNode;
     var nodes = {};
+    var node_name_id_mapping = {};
     var nodeId = 0;
     var mouseX = 0, mouseY = 0;
     var loops = [];
@@ -414,6 +415,14 @@ function NodeGraph() {
 
             return this.intellisenseObj.name;
         }
+
+        this.getID = function () {
+            return this.id;
+        }
+
+        this.getIntellisenseObj = function() {
+            return this.intellisenseObj;
+        }
         
         canvas.append("<div class='node shadow'/>");
         var n = $(".node").last();
@@ -778,24 +787,92 @@ function NodeGraph() {
         currentNode = temp;
         currentConnection = null;
     }
-    
-    this.generateNodes = function() {
-    
-    var intellisense = GlobalIntellisenseRoot;
-    // Generate new Nodes based on the classes found.
-    var startx = 50; var starty = 100; 
-    for (var key in intellisense.defun) {
-        var obj = intellisense.defun[key];
-        var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
-        startx += defaultNodeWidth + 20;
-        node.txt[0].focus();
-        currentNode = node;
+
+    this.getNodeFromName = function(name) {
+        var id = node_name_id_mapping[name];
+        return nodes[id];
     }
 
-    // This is how we create an automatic connection between 2 nodes.
-    // createConnection(nodes[0], "right", nodes[1], "left");
-  }
+    this.generateNodes = function () {
+
+        var intellisense = GlobalIntellisenseRoot;
+        // Generate new Nodes based on the classes found.
+        var startx = 50; var starty = 100;
+        for (var key in intellisense.defun) {
+            var obj = intellisense.defun[key];
+            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+            node_name_id_mapping[obj.name] = node.getID();
+            startx += defaultNodeWidth + 20;
+            if (startx > win.width()) {
+                startx = 50;
+                starty += 20;
+            }
+            node.txt[0].focus();
+            currentNode = node;
+        }
+
+        // This is how we create an automatic connection between 2 nodes.
+        // createConnection(nodes[0], "right", nodes[1], "left");
+        this.generateConnections();
+    }
     
+    // Generate Connections between the nodes based on the inheritance data
+    this.generateConnections = function () {
+        var intellisense = GlobalIntellisenseRoot;
+        // For all global classes find it's parent
+        for (var key in nodes) {
+            var node = nodes[key];
+            var obj = nodes[key].getIntellisenseObj();
+
+            // Now find all its parents and connect them
+            for (var i = 0; i < obj.super_classes.length; ++i) {
+                var parent_class_name = obj.super_classes[i];
+                var parent_node = this.getNodeFromName(parent_class_name);
+
+                var connectionPts = this.getConnectionPoints(node, parent_node);
+                createConnection(node, connectionPts[0], parent_node, connectionPts[1]);
+            }
+        }
+    }
+
+    this.getConnectionPoints = function (node1, node2) {
+        var connectionPts = ["top", "top"];
+
+        var x1 = node1.x(); var y1 = node1.y();
+        var x2 = node2.x(); var y2 = node2.y();
+        var width1 = node1.width(); var width2 = node2.width();
+        var height1 = node1.height(); var height2 = node2.height();
+
+        if (x1 < x2) {
+            if (y1 < y2 + height2) {
+                connectionPts[1] = "bottom";
+            }
+            else if (y1 + height1 > y2) {
+                connectionPts[1] = "top";
+            }
+            else {
+                connectionPts[1] = "left";
+            }
+
+            connectionPts[0] = "right";
+        }
+
+        if (x1 > x2) {
+            if (y1 < y2 + height2) {
+                connectionPts[1] = "bottom";
+            }
+            else if (y1 + height1 > y2) {
+                connectionPts[1] = "top";
+            }
+            else {
+                connectionPts[1] = "right";
+            }
+
+            connectionPts[0] = "left";
+        }
+
+        return connectionPts;
+    }
     
     //function defaultNode() {
     //	var temp = new Node(win.width() / 2 - defaultNodeWidth / 2, win.height() / 2 - defaultNodeHeight / 2, defaultNodeWidth, defaultNodeHeight, true);
