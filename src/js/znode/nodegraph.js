@@ -401,16 +401,17 @@ function NodeGraph() {
         }
 
         this.PopoverHide = function() {
-          var id = "#node_text_" + this.id;
-          $(id).popover('hide');
+            var id = "#node_text_" + this.id;
+            SyntaxHighlighter.all();
+            $(id).popover('hide');
         }
-        
-        this.getIntellisenseObjName = function() {
-                if (this.intellisenseObj == undefined) {
-                    return "Undefined";
-                }
-                
-                return this.intellisenseObj.name;
+
+        this.getIntellisenseObjName = function () {
+            if (this.intellisenseObj == undefined) {
+                return "Undefined";
+            }
+
+            return this.intellisenseObj.name;
         }
         
         canvas.append("<div class='node shadow'/>");
@@ -510,14 +511,19 @@ function NodeGraph() {
             "overflow" : "auto",
             "font-size" : "12px",
             "font-family" : "sans-serif",
-            "border" : "none",
+            "border": "none",
+            "color": "white",
             "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
             "z-index" : 4
         });
 
         this.txt = txt;
-            if (this.intellisenseObj != null)	
-                $("#node_text_" + this.id).attr('data-content', this.intellisenseObj.get_source_code());
+        if (this.intellisenseObj != null) {
+            var src_code = this.intellisenseObj.get_source_code();
+            $("#node_text_" + this.id).attr('data-original-title', "Class: " + this.getIntellisenseObjName());
+            $("#node_text_" + this.id).attr('data-content', src_code);
+            SyntaxHighlighter.all();
+        }
 
         n.append("<div class='resizer' />");
         var resizer = $(".node .resizer").last();
