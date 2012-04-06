@@ -30,6 +30,8 @@ function NodeGraph() {
     win.resize(resizePaper);
     resizePaper();
 
+    this.getNodes = function () { return nodes; }
+
     canvas.append("<ul id='menu'><li>Left<\/li><li>Right<\/li><li>Top<\/li><li>Bottom<\/li><\/ul>");
     var menu = $("#menu");
     menu.css({
@@ -402,7 +404,6 @@ function NodeGraph() {
 
         this.PopoverHide = function() {
             var id = "#node_text_" + this.id;
-            SyntaxHighlighter.all();
             $(id).popover('hide');
         }
 
@@ -522,7 +523,14 @@ function NodeGraph() {
             var src_code = this.intellisenseObj.get_source_code();
             $("#node_text_" + this.id).attr('data-original-title', "Class: " + this.getIntellisenseObjName());
             $("#node_text_" + this.id).attr('data-content', src_code);
-            SyntaxHighlighter.all();
+        }
+
+        this.getSourceCode = function() {
+            if (this.intellisenseObj != null) {
+                return this.intellisenseObj.get_source_code();
+            }
+
+            return "No Source Defined";
         }
 
         n.append("<div class='resizer' />");

@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="css/bootstrap.css" type="text/css" />
     <link rel="stylesheet" href="css/style.css" type="text/css" />
     <link rel="stylesheet" href="css/jquery-ui-1.8.18.custom.css" />
+    <link rel="stylesheet" href="css/jquery.snippet.css" />
+
     <script type="text/javascript" src="js/libs/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="js/libs/jquery.color.js"></script>
     <script type="text/javascript" src="js/libs/raphael.js"></script>
@@ -13,12 +15,14 @@
     <script type="text/javascript" src="js/libs/jquery.highlight.js"></script>
     <script type="text/javascript" src="js/libs/bootstrap.js"></script>
     <script type="text/javascript" src="js/libs/bootstrap-popover.js"></script>
- 
-    <!-- Add Syntax highlighting Support for showing source code view -->
+    <script type="text/javascript" src="js/libs/jquery.snippet.js"></script>
+     
+    <!-- Add Syntax highlighting Support for showing source code view 
     <script type="text/javascript" src="js/libs/shCore.js"></script>
     <script type="text/javascript" src="js/libs/shBrushJScript.js"></script>
     <link type="text/css" rel="stylesheet" href="css/shCoreDefault.css"/>
     <script type="text/javascript">SyntaxHighlighter.all();</script>
+    -->
 
     <script type="text/javascript" src="js/intellisense/introspect.js"></script>
     <script type="text/javascript" src="js/intellisense/utils.js"></script>
@@ -78,6 +82,7 @@
                                 <li><a id="inheritance_view">Inheritance View</a></li>
                                 <li><a id="composition_view">Composition View</a></li>
                                 <li><a id="resource_view">Resource View</a></li>
+                                <li><a id="source_view">Source View</a></li>
                                 <li class="divider"></li>
                                 <li><a id="clear_canvas">Clear Canvas</a></li>
                             </ul>
@@ -104,6 +109,8 @@
     <!-- Main Canvas for drawing -->
     <div id="canvas">
     </div>
+
+    <!-- Popups definition -->
     <div class="modal hide fade popup" id="PasteCodePopup">
         <div class="modal-header">
             <a class="close" data-dismiss="modal">x</a>
@@ -146,8 +153,23 @@
             <span class="btn btn-success fileinput-button"><i class="icon-plus icon-white"></i><span>
                 Add files...</span>
                 <input type="file" name="files[]" multiple="" onchange="handleFiles(this.files);">
-            </span><a class="btn" id="open_javascript_close_button">Close</a> <a class="btn btn-primary"
+                </span><a class="btn" id="open_javascript_close_button">Close</a> <a class="btn btn-primary"
                 id="parse_button" onclick="readFiles();">Parse</a>
+        </div>
+    </div>
+
+    <div class="modal hide fade popup" id="SourceViewPopup">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">x</a>
+            <h3>
+                <center>Viewing Source Code</center>
+            </h3>
+        </div>
+        <div class="modal-body">
+        <pre class="source_code"></pre>
+        </div>
+        <div class="modal-footer">
+            <a class="btn" id="A1">Close</a> 
         </div>
     </div>
 </body>
