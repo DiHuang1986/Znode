@@ -50,12 +50,26 @@ function type_function() {
         new_args = arguments[0];
     }
 
-    if (new_args.length == 4) {
+    this.definition_encountered = false;
+
+    if (new_args != null && new_args.length == 4) {
         this.type = new_args[0];
         this.name = new_args[1];
         this.ast = new_args[2];
         this.arguments = new_args[3];
+        this.definition_encountered = true;
     }
+
+    this.setArgs = function(args) {
+        this.type = args[0];
+        this.name = args[1];
+        this.ast = args[2];
+        this.arguments = args[3];
+        this.definition_encountered = true;
+    }
+
+    this.isDefinitionEncountered = function() { return this.definition_encountered; }
+
     this.return_obj = null;
     this.source_code = gen_code(this.ast, {beautify: true});
     
@@ -181,9 +195,10 @@ function type_function() {
     this.get_sub_classes = function() {
         return this.sub_classes;
     }
-    
+
     // Functions executed in constructor
-    this.walk_function();
+    if (this.ast != null)
+        this.walk_function();
 }
 
 // type_function.prototype = type_object;
@@ -233,14 +248,23 @@ function create_usage_object(name, ast, line) {
 }
 
 // Global Method for creating type_objects. Use this method only
-function type_object_factory(name, obj_type, token, parent, args) {
+function type_object_factory(name, obj_type, constructor_call, token, parent, args) {
     var found = false;
     if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
-        return GlobalIntellisenseRoot.obj_dict[name];   
+        var obj = GlobalIntellisenseRoot.obj_dict[name];
+        if (obj.type == "defun" || obj.type == "function") {
+            if (!obj.isDefinitionEncountered()) {
+                obj.setArgs(args);
+                obj.walk_function();
+            }
+        }
+
+        return obj;
     }
     else {
-        var obj = new obj_type(args);
+        var obj = new constructor_call(args);
         obj.name = name;
+        obj.type = obj_type;
         obj.token = token;
         obj.parent = parent;
         GlobalIntellisenseRoot.add_to_object_dictionary(name, obj);

@@ -91,6 +91,7 @@ $(function () {
 
     $("#paste_code").click(function () {
         $("#PasteCodePopup").modal('show');
+        $("#textarea_code").focus();
     });
 
     $("#paste_code_close_button").click(function () {
