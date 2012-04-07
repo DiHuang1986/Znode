@@ -431,7 +431,7 @@ function NodeGraph() {
         });
         n.css("z-index", zindex++);
 
-        if (this.intellisenseObj.type == "global_var")
+        if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
             n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
 
         n.mouseup(function(){
@@ -539,7 +539,7 @@ function NodeGraph() {
             "z-index" : 4
         });
 
-        if (this.intellisenseObj.type == "global_var")
+        if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
             txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
 
         this.txt = txt;

@@ -26,6 +26,7 @@ function walk_tree(ast) {
             assign_expr.type = "assign_expr";
             assign_expr.left_expr = walk_tree(ast[2]);
             assign_expr.right_expr = walk_tree(ast[3]);
+
             assign_expr.name = assign_expr.left_expr.name;
             assign_expr.right_expr.token = this.parent;
             assign_expr.left_expr.token = this.parent;
@@ -131,6 +132,7 @@ function walk_tree(ast) {
             binary_expr.type = "binary_expr";
             binary_expr.binary_lhs = walk_tree(ast[2]);
             binary_expr.binary_rhs = walk_tree(ast[3]);
+            return binary_expr;
         },
 
         "if": function () { },
@@ -188,7 +190,6 @@ function parse_call(ast) {
         usage_obj.line = call_obj.token.start.line;
         
         // Get the object for this one.
-        // var call_function_obj = type_object_factory(call_obj.name, type_function, call_obj.token, null, ["defun", ast[1], ["toplevel", [ast]], ast[2]]);
         var call_function_obj = type_object_factory(call_obj.name, type_function_call, call_obj.token, null, null);
         call_function_obj.add_usage(usage_obj);
     }
@@ -199,10 +200,14 @@ function parse_call(ast) {
 function parse_prototype_ast(ast) {
     var prototype_expr = null;
     prototype_expr = walk_tree(ast);
+    var left_expr = prototype_expr.left_expr;
+    var right_expr = prototype_expr.right_expr;
     
+    var code = gen_code(["toplevel", [ast]]);
+
     // Find the classes to setup the inheritance
-    var inherited_class = GlobalIntellisenseRoot.get_single_defun(prototype_expr.left_expr.name);
-    var base_class = GlobalIntellisenseRoot.get_single_defun(prototype_expr.right_expr.name);
+    var inherited_class = type_object_factory(left_expr.name, type_function, prototype_expr.token, null, null);
+    var base_class = type_object_factory(right_expr.name, type_function, prototype_expr.token, null, null);
     
     inherited_class.super_classes.push(base_class.name);
     base_class.sub_classes.push(inherited_class.name);

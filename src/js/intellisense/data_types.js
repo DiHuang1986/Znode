@@ -49,11 +49,13 @@ function type_function() {
     if (arguments.length == 1) {
         new_args = arguments[0];
     }
-    
-    this.type = new_args[0];
-    this.name = new_args[1];
-    this.ast = new_args[2];
-    this.arguments = new_args[3];
+
+    if (new_args.length == 4) {
+        this.type = new_args[0];
+        this.name = new_args[1];
+        this.ast = new_args[2];
+        this.arguments = new_args[3];
+    }
     this.return_obj = null;
     this.source_code = gen_code(this.ast, {beautify: true});
     
@@ -91,41 +93,48 @@ function type_function() {
             this.class_members[class_obj.name].push(class_obj);
         }
     }
-    
-    this.walk_function = function() {
+
+    this.walk_function = function () {
         // Walk the ast for the function alone to generate the dependency graph
         var code_ast = this.ast[1][0][3];
-        
+
         for (var i = 0; i < code_ast.length; ++i) {
             var expr = walk_tree(code_ast[i]);
-            
+
             if (expr != null) {
-                switch(expr.type) {
+                switch (expr.type) {
                     case "assign_expr":
                         var right_expr = expr.right_expr;
                         var left_expr = expr.left_expr;
                         
-                        var right_expr_usage_obj = create_usage_object(right_expr.name, code_ast[i], right_expr.token.start.line);                        
-                        var left_expr_usage_obj = create_usage_object(left_expr.name, code_ast[i], left_expr.token.start.line);
-                        
+                        var left_expr_start_line = -1; var right_expr_start_line = -1;
+                        if (Introspect.typeOf(right_expr.token) == "object")
+                            right_expr_start_line = right_expr.token.start.line;
+
+                        if (Introspect.typeOf(left_expr.token) == "object")
+                            left_expr_start_line = left_expr.token.start.line;
+
+                        var right_expr_usage_obj = create_usage_object(right_expr.name, code_ast[i], right_expr_start_line);
+                        var left_expr_usage_obj = create_usage_object(left_expr.name, code_ast[i], left_expr_start_line);
+
                         var right_expr_name = get_qualified_name(parse_expr(right_expr), ((right_expr.name == "this") ? this : null));
-                        var left_expr_name  = get_qualified_name(parse_expr(left_expr), ((left_expr.name == "this") ? this : null));
-                                            
+                        var left_expr_name = get_qualified_name(parse_expr(left_expr), ((left_expr.name == "this") ? this : null));
+
                         if (right_expr.type == "composition") {
                             // @todo: Redo
                             this.classes_this_composes.push(right_expr);
                         }
-                        
+
                         var left_obj = type_object_factory(left_expr_name, type_object, assign_expression.token, this);
                         var right_obj = null;
-                    
+
                         if (left_expr.name == "this" ||
                             GlobalIntellisenseRoot.is_defun_present(left_expr_name) ||
                             GlobalIntellisenseRoot.is_global_var_present(left_expr_name)) {
-                            
+
                             // Now check if the expr type is "name" or not
                             if (right_expr.type == "name") {
-                                this.add_dependency(right_expr_name);                                
+                                this.add_dependency(right_expr_name);
                                 right_obj = type_object_factory(right_expr_name, type_object, right_expr.token, ((right_expr.name == "this") ? this : null));
                                 // Check if this is a global variable or defun
                                 if (GlobalIntellisenseRoot.is_defun_present(right_expr.name)) {
@@ -133,28 +142,28 @@ function type_function() {
                                 }
                                 else if (GlobalIntellisenseRoot.is_global_var_present(right_expr.name)) {
                                     right_expr.type = "global_var";
-                                }                                
+                                }
                                 // Add the usage list for this.
                                 right_obj.add_usage(right_expr_usage_obj);
                             }
-                            
+
                             if (left_obj.type == "" || left_obj.type == null || left_obj.type == undefined)
                                 left_obj.type = right_expr.type;
 
                             // Add the usage for the class member
                             left_obj.add_usage(left_expr_usage_obj, right_expr.type);
-                                
+
                             // Add the usage of local var
                             if (left_expr.name == "this")
                                 this.add_class_member(left_obj);
                         }
-                    
+
                         break;
-                
+
                     case "return_expr":
                         this.return_obj = expr;
                         break;
-                    
+
                     case "call":
                         // Find if the called function has been defined before or not.
                         // If not then add it to unmet dependencies.
@@ -204,10 +213,9 @@ function type_usage() {
 
 function type_function_call() {
     type_object.call(this);
-    this.ast = null;  
+    this.ast = null;
 }
 
-type_function.prototype      = new type_object;
 type_expression.prototype    = new type_object;
 assign_expression.prototype  = new type_object;
 binary_expression.prototype  = new type_object;
