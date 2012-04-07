@@ -1,135 +1,147 @@
-body, html {
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
+/*body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 #canvas {
-	background-color: white;
+    background-color: white;
 }
 #overlay {
-	position: absolute;
-	background: url("../images/trans.gif");
-	z-index: 1000;
-	cursor: pointer;
+    position: absolute;
+    background: url("../images/trans.gif");
+    z-index: 1000;
+    cursor: pointer;
 }
+
 #controls {
-	width: 100%;
-	height: 40px;
-	background-color: #dcdcdc;
-	border-top: none;
-	border-left: none;
-	border-right: none;
-	border-bottom: 1px solid #999;
+    width: 100%;
+    height: 40px;
+    background-color: #dcdcdc;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #999;
 }
+
 .btn_ {
-	padding: 17px 8px 13px 8px;
-	height: 10px;
-	margin: 0px 0px 0px 2px;
-	float: left;
-	cursor: pointer;
-	font-family: Georgia, serif;
-	font-size: 12px;
-	background-color: #efefef;
+    padding: 17px 8px 13px 8px;
+    height: 10px;
+    margin: 0px 0px 0px 2px;
+    float: left;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    font-size: 12px;
+    background-color: #efefef;
 }
 #logo {
-	position: relative;
-	float: left;
-	font-family: Georgia, serif;
-	font-size: 20px;
-	color: black;
-	padding-left: 5px;
-	margin: 10px;
+    position: relative;
+    float: left;
+    font-family: Georgia, serif;
+    font-size: 20px;
+    color: black;
+    padding-left: 5px;
+    margin: 10px;
 }
 #openWin {
-	position: absolute;
-	top: 60px;
-	left: 20px;
-	width: 250px;
-	height: 510px;
-	background-color: #dcdcdc;
-	z-index: 6000;
-	display: none;
-}
-#openComp {
-	position: absolute;
-	top: 60px;
-	left: 20px;
-	width: 250px;
-	height: 510px;
-	background-color: #dcdcdc;
-	z-index: 6000;
-	display: none;
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    width: 250px;
+    height: 510px;
+    background-color: #dcdcdc;
+    z-index: 6000;
+    display: none;
+}*/
+
+/*#openComp {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    width: 250px;
+    height: 510px;
+    background-color: #dcdcdc;
+    z-index: 6000;
+    display: none;
 }
 #files {
-	position: relative;
-	margin: 10px;
-	background-color: white;
-	width: 230px;
-	height: 450px;
-	overflow: auto;
+    position: relative;
+    margin: 10px;
+    background-color: white;
+    width: 230px;
+    height: 450px;
+    overflow: auto;
 }
 #classNames {
-	position: relative;
-	margin: 10px;
-	background-color: white;
-	width: 230px;
-	height: 450px;
-	overflow: auto;
+    position: relative;
+    margin: 10px;
+    background-color: white;
+    width: 230px;
+    height: 450px;
+    overflow: auto;
 }
 #fileTitle {
-	font-family: Georgia, serif;
-	font-style: italic;
-	margin-left: 10px;
-	margin-top: 10px;
+    font-family: Georgia, serif;
+    font-style: italic;
+    margin-left: 10px;
+    margin-top: 10px;
 }
 form {
-	padding: 0;
-	margin: 0;
+    padding: 0;
+    margin: 0;
 }
 input {
-	border: 1px solid gray;
-	color: gray;
-	padding: 4px;
+    border: 1px solid gray;
+    color: gray;
+    padding: 4px;
 }
 #saveForm {
-	position: relative;
-	float: left;
-	font-family: Georgia, serif;
-	font-size: 12px;
-	padding: 10px 0px 0px 18px;
+    position: relative;
+    float: left;
+    font-family: Georgia, serif;
+    font-size: 12px;
+    padding: 10px 0px 0px 18px;
 }
 /* related to NodeGraph & li/ul */
-ul {
-	padding: 0;
-	margin: 0;
-	background-color: white;
+/*ul {
+    padding: 0;
+    margin: 0;
+    background-color: white;
 }
 li {
-	list-style: none;
+    list-style: none;
 }
 li, .file {
-	font-size: 12px;
-	margin: 0;
-	cursor: pointer;
-	background-color: white;
-	font-family: Georgia, serif;
-	border-bottom: 1px solid #cccccc;
-	padding: 5px 10px 5px 10px;
+    font-size: 12px;
+    margin: 0;
+    cursor: pointer;
+    background-color: white;
+    font-family: Georgia, serif;
+    border-bottom: 1px solid #cccccc;
+    padding: 5px 10px 5px 10px;
 }
 .className {
-	font-size: 12px;
-	margin: 0;
-	cursor: pointer;
-	background-color: white;
-	font-family: Georgia, serif;
-	border-bottom: 1px solid #cccccc;
-	padding: 5px 10px 5px 10px;
-}
+    font-size: 12px;
+    margin: 0;
+    cursor: pointer;
+    background-color: white;
+    font-family: Georgia, serif;
+    border-bottom: 1px solid #cccccc;
+    padding: 5px 10px 5px 10px;
+}*/
+/*
 textarea, input {
-	outline: none;
+    outline: none;
 }
 .highlight {
-	background-color: #FFFF88;
+    background-color: #FFFF88;
+}
+*/
+
+body {
+    font: 12px Tahoma, sans-serif;
+    /* text-shadow: 0 1px 0 black; */
+    background: #444444;
+    color: black;
 }
 
 #textarea_code {
@@ -140,16 +152,42 @@ textarea, input {
     -khtml-border-radius:20px;
     background-color:#fff;
     font-family:Arial;
-    color:#999;
+    color:black;
     width:95%;
     height: 300px;
     font-size:12px;
     padding:10px;
-	resize:none;
-	overflow:auto;
+    resize:none;
+    overflow:auto;
 }
 
 #textarea_code:focus{
-	outline:none;
-	background-color:#F3FFCF;
+    outline:none;
+    background-color:#F3FFCF;
+}
+
+.fileinput-button {
+  position: relative;
+  overflow: hidden;
+  float: left;
+  margin-right: 4px;
+}
+.fileinput-button input {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  border: solid transparent;
+  border-width: 0 0 100px 200px;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  -moz-transform: translate(-300px, 0) scale(4);
+  direction: ltr;
+  cursor: pointer;
+}
+
+.shadow {
+  -moz-box-shadow:    2px 2px 1px 1px #3B3131;
+  -webkit-box-shadow: 2px 2px 1px 1px #3B3131;
+  box-shadow:         2px 2px 1px 1px #3B3131;
 }

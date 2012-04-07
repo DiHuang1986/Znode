@@ -69,3 +69,24 @@ function array_contains_type(serialized_array, search_term) {
     
     return false;
 }
+
+var _is_ = {    
+    "prototype" : function(ast) {
+        var serialized_ast = get_serialized_ast(ast);
+        var is_prototype_stmt = array_contains_type(serialized_ast, "prototype");
+        return is_prototype_stmt;
+    },
+}
+
+function getTokenDisplayName(token_name) {
+    switch(token_name) {
+        case "defun":
+        case "function":
+            return "Function";
+            break;
+
+        case "global_var":
+            return "Globals";
+            break;
+    }
+}
