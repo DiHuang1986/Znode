@@ -33,7 +33,7 @@ $(function () {
             "backgroundColor": "#efefef"
         });
     });
-    $("#clear").click(function () {
+    $("#clear_canvas").click(function () {
         graph.clearAll();
     });
     $("#help").click(function () {
@@ -84,9 +84,14 @@ $(function () {
 
     $("#open_json").click(function () {
         var fileList = $("#files");
+        $('#OpenJsonFile').modal('show'); 
         fileList.html("<div>loading...<\/div>");
-        openWin.fadeIn();
+        //openWin.fadeIn();
         fileList.load("json/files.php?" + Math.random() * 1000000);
+    });
+    
+    $('#about').click(function() {
+        $('#AboutPopup').modal('show');
     });
 
     $("#paste_code").click(function () {
@@ -96,11 +101,19 @@ $(function () {
 
     $("#paste_code_close_button").click(function () {
         $("#PasteCodePopup").modal('hide');
-    })
+    });
+    
+    $("#paste_code_close_button1").click(function () {
+        $("#AboutPopup").modal('hide');
+    });
+    
+    $("#paste_code_close_button2").click(function () {
+        $("#OpenJsonFile").modal('hide');
+    });
 
     $("#open_javascript_close_button").click(function () {
         $("#OpenJavascriptPopup").modal('hide');
-    })
+    });
 
     $("#source_view").click(function () {
         // Setup the source code for the focused node
@@ -108,7 +121,7 @@ $(function () {
         $(".source_code").append(src);
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');
-    })
+    });
 
     $("#parse_button").click(function () {
         // We should now take the code and parse it.
@@ -121,7 +134,7 @@ $(function () {
         $("#OpenJavascriptPopup").modal('show');
     });
 
-    var nameMessage = "Enter your file name";
+    var nameMessage = $('.search-query').attr('placeholder');
     var filename = $("#filename").val(nameMessage);
 
     filename.focus(function () {

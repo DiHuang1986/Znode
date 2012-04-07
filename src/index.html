@@ -29,11 +29,11 @@
 </head>
 <body>
     <div id="openWin">
-        <div id="fileTitle">
+        <!-- <div id="fileTitle">
             Files:
-        </div>
-        <div id="files">
-        </div>
+        </div> -->
+        <!-- <div id="files">
+        </div> -->
     </div>
     <div id="openComp">
         <div id="fileTitle">
@@ -101,6 +101,40 @@
     </div>
     <!-- Main Canvas for drawing -->
     <div id="canvas">
+    </div>
+    
+    <!-- Open JSON files definition -->
+    <div class="modal hide fade popup" id="OpenJsonFile">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">x</a>
+            <h3>
+                <center>
+                    Select a file:</center>
+            </h3>
+        </div>
+        <div class="modal-body">
+            <div id="files"></div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn" id="paste_code_close_button2">Close</a>
+        </div>
+    </div>
+    
+    <!-- About definition -->
+    <div class="modal hide fade popup" id="AboutPopup">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">x</a>
+            <h3>
+                <center>
+                    The source code visualizer</center>
+            </h3>
+        </div>
+        <div class="modal-body">
+            <div>Some test will go here</div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn" id="paste_code_close_button1">Close</a>
+        </div>
     </div>
 
     <!-- Popups definition -->
