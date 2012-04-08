@@ -190,7 +190,7 @@ function parse_call(ast) {
         usage_obj.line = call_obj.token.start.line;
         
         // Get the object for this one.
-        var call_function_obj = type_object_factory(call_obj.name, type_function_call, call_obj.token, null, null);
+        var call_function_obj = type_object_factory(call_obj.name, "call", type_function_call, call_obj.token, null, null);
         call_function_obj.add_usage(usage_obj);
     }
     

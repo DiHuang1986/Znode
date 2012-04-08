@@ -795,9 +795,15 @@ function NodeGraph() {
         currentConnection = null;
     }
 
-    this.getNodeFromName = function(name) {
-        var id = node_name_id_mapping[name];
-        return nodes[id];
+    this.getNodeFromName = function (name, node_type) {
+        // Check if the node is already present or not.
+        if (node_name_id_mapping.hasOwnProperty(name)) {
+            var id = node_name_id_mapping[name];
+            return nodes[id];
+        } else {
+            // Create a new node and store it. No Object associated
+            var new_node = this.addNode(win.width() / 2, win.height() / 2, defaultNodeWidth, defaultNodeHeight, null);
+        }
     }
 
     this.generateNodes = function () {

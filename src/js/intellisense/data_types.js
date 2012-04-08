@@ -139,7 +139,7 @@ function type_function() {
                             this.classes_this_composes.push(right_expr);
                         }
 
-                        var left_obj = type_object_factory(left_expr_name, type_object, assign_expression.token, this);
+                        var left_obj = type_object_factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
                         var right_obj = null;
 
                         if (left_expr.name == "this" ||
@@ -149,7 +149,7 @@ function type_function() {
                             // Now check if the expr type is "name" or not
                             if (right_expr.type == "name") {
                                 this.add_dependency(right_expr_name);
-                                right_obj = type_object_factory(right_expr_name, type_object, right_expr.token, ((right_expr.name == "this") ? this : null));
+                                right_obj = type_object_factory(right_expr_name, right_expr.type, type_object, right_expr.token, ((right_expr.name == "this") ? this : null));
                                 // Check if this is a global variable or defun
                                 if (GlobalIntellisenseRoot.is_defun_present(right_expr.name)) {
                                     right_expr.type = "function";
@@ -268,6 +268,12 @@ function type_object_factory(name, obj_type, constructor_call, token, parent, ar
         obj.token = token;
         obj.parent = parent;
         GlobalIntellisenseRoot.add_to_object_dictionary(name, obj);
+
+        if (obj_type == "defun")
+            GlobalIntellisenseRoot._add_global_func(name, obj);
+        else if (obj_type == "global_var")
+            GlobalIntellisenseRoot._add_global_var(name, obj);
+
         return obj;
     }
 }
