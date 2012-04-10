@@ -190,8 +190,6 @@ body {
   -moz-box-shadow:    2px 2px 1px 1px #3B3131;
   -webkit-box-shadow: 2px 2px 1px 1px #3B3131;
   box-shadow:         2px 2px 1px 1px #3B3131;
-<<<<<<< HEAD
-=======
 }
 
 .className {
@@ -249,5 +247,4 @@ body {
     padding:10px;
     resize:none;
     overflow:auto;
->>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
 }
