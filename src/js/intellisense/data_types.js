@@ -77,7 +77,7 @@ function type_function() {
     this.sub_classes   = [];
     
     this.classes_where_composed = [];
-    this.classes_this_composes = [];
+    this.classes_this_composes = {};
     
     this.dependencies = {};
     
@@ -136,7 +136,7 @@ function type_function() {
 
                         if (right_expr.type == "composition") {
                             // @todo: Redo
-                            this.classes_this_composes.push(right_expr);
+                            this.classes_this_composes[right_expr.name] = right_expr;
                         }
 
                         var left_obj = type_object_factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
@@ -195,6 +195,10 @@ function type_function() {
     
     this.get_sub_classes = function() {
         return this.sub_classes;
+    }
+
+    this.get_composition_classes = function () {
+        return this.classes_this_composes;
     }
 
     // Functions executed in constructor
