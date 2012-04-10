@@ -33,7 +33,11 @@ $(function () {
             "backgroundColor": "#efefef"
         });
     });
+<<<<<<< HEAD
     $("#clear").click(function () {
+=======
+    $("#clear_canvas").click(function () {
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
         graph.clearAll();
     });
     $("#help").click(function () {
@@ -50,9 +54,17 @@ $(function () {
             hide: "explode"
         });
     });
+<<<<<<< HEAD
     $('#composition').click(function () {
         var classNames = $('#classNames');
         openComp.fadeIn();
+=======
+    $('#composition_view').click(function () {
+        var classNames = $('#classNames');
+        classNames.html(''); // clear the top element
+        openComp.fadeIn();
+        // parse the project and display all the classes.
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
         classNames.append("<div class='className'>Class Name 1<\/div>");
         classNames.append("<div class='className'>Class Name 2<\/div>");
         classNames.append("<div class='className'>Class Name 3<\/div>");
@@ -84,10 +96,22 @@ $(function () {
 
     $("#open_json").click(function () {
         var fileList = $("#files");
+<<<<<<< HEAD
         fileList.html("<div>loading...<\/div>");
         openWin.fadeIn();
         fileList.load("json/files.php?" + Math.random() * 1000000);
     });
+=======
+        $('#OpenJsonFile').modal('show'); 
+        fileList.html("<div>loading...<\/div>");
+        //openWin.fadeIn();
+        fileList.load("json/files.php?" + Math.random() * 1000000);
+    });
+    
+    $('#about').click(function() {
+        $('#AboutPopup').modal('show');
+    });
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
 
     $("#paste_code").click(function () {
         $("#PasteCodePopup").modal('show');
@@ -96,11 +120,31 @@ $(function () {
 
     $("#paste_code_close_button").click(function () {
         $("#PasteCodePopup").modal('hide');
+<<<<<<< HEAD
     })
 
     $("#open_javascript_close_button").click(function () {
         $("#OpenJavascriptPopup").modal('hide');
     })
+=======
+    });
+    
+    $("#paste_code_close_button1").click(function () {
+        $("#AboutPopup").modal('hide');
+    });
+    
+    $("#paste_code_close_button2").click(function () {
+        $("#OpenJsonFile").modal('hide');
+    });
+    
+    $('#paste_code_close_button3').click(function() {
+       $('#OpenCompView').modal('hide'); 
+    });
+
+    $("#open_javascript_close_button").click(function () {
+        $("#OpenJavascriptPopup").modal('hide');
+    });
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
 
     $("#source_view").click(function () {
         // Setup the source code for the focused node
@@ -108,7 +152,11 @@ $(function () {
         $(".source_code").append(src);
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');
+<<<<<<< HEAD
     })
+=======
+    });
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
 
     $("#parse_button").click(function () {
         // We should now take the code and parse it.
@@ -121,7 +169,11 @@ $(function () {
         $("#OpenJavascriptPopup").modal('show');
     });
 
+<<<<<<< HEAD
     var nameMessage = "Enter your file name";
+=======
+    var nameMessage = $('.search-query').attr('placeholder');
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
     var filename = $("#filename").val(nameMessage);
 
     filename.focus(function () {
@@ -158,12 +210,47 @@ $(function () {
         });
     });
 
+<<<<<<< HEAD
     $('.className').live('click', function () {
         $('#comp').dialog({
             autoOpen: true,
             show: "blind",
             hide: "explode"
         });
+=======
+    $('.className').live('click', function (e) {
+        alert($(e.target).html() + " was selected"); // user selected a class
+        // This is where we need to check if the selected class exists in other classes by composition
+        // and then draw all those classes<nodes> to the compDiv element. If no composition found, alert the user
+        
+        // draw the composition view here
+        var compDiv = $('#composition_data');
+        // ========================= This can be deleted ======
+        compDiv.html('');
+        var zindex = 1;
+        var x = 20;
+        for (var i = 0; i<3; i++) {
+        compDiv.append("<div class='node_test shadow'/>");
+        var n = $(".node_test").last();
+        n.css({
+            "position" : "absolute",
+            "left" : x,
+            "top" : 90,
+            "width" : 100,
+            "height" : 100,
+            "border" : "1px solid black",
+            "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+            "-webkit-border-radius" : "10px"
+        });
+        n.css("z-index", zindex++);
+        x += 120;
+        }
+        // ===================== end of junk code =======
+        
+        // call the modal
+        $('#OpenCompView').modal('show');
+        $('#openComp').fadeOut();
+>>>>>>> 7e8c6735dc268dee8cb8e92cdc16093baaf3594d
     }).live('mouseover', function () {
         $(this).css({
             "background-color": "#ededed"
