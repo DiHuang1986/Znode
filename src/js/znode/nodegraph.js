@@ -805,6 +805,14 @@ function NodeGraph() {
             var new_node = this.addNode(win.width() / 2, win.height() / 2, defaultNodeWidth, defaultNodeHeight, null);
         }
     }
+    
+    this.generateSingleNode = function (name, startx, starty) {
+        var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, false);
+        node_name_id_mapping[name] = node.getID();
+        
+        node.txt[0].focus();
+        currentNode = node;
+    }
 
     this.generateNodes = function () {
 

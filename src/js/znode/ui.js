@@ -191,36 +191,25 @@ $(function () {
     $('.className').live('click', function (e) {
         var class_name = $(e.target).html();
         var obj = GlobalIntellisenseRoot.get_single_defun(class_name);
+        var startx = 500;
+        var starty = 100;
+        graph.clearAll();
         // This is where we need to check if the selected class exists in other classes by composition
         // and then draw all those classes<nodes> to the compDiv element. If no composition found, alert the user
 
         // draw the composition view here
-        var compDiv = $('#composition_data');
-        // ========================= This can be deleted ======
-        compDiv.html('');
-        var zindex = 1;
-        var x = 20;
+        graph.generateSingleNode(class_name, startx, starty);
+        startx = 200;
+        starty = defaultNodeHeight + 250;
         var composition_classes = obj.get_composition_classes();
         for (var key in composition_classes) {
-            compDiv.append("<div class='node_test shadow'><center>" + key + "</center><\/div>");
-            var n = $(".node_test").last();
-            n.css({
-                "position": "absolute",
-                "left": x,
-                "top": 90,
-                "width": 100,
-                "height": 100,
-                "border": "1px solid black",
-                "background": "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
-                "-webkit-border-radius": "10px"
-            });
-            n.css("z-index", zindex++);
-            x += 120;
+            graph.generateSingleNode(key, startx, starty);
+            startx += defaultNodeWidth + 20;
+            if (startx > $(window).width()) {
+                startx = 50;
+                starty += defaultNodeHeight + 20;
+            }
         }
-        // ===================== end of junk code =======
-
-        // call the modal
-        $('#OpenCompView').modal('show');
         $('#openComp').fadeOut();
     }).live('mouseover', function () {
         $(this).css({
