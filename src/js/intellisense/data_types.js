@@ -50,6 +50,8 @@ function type_function() {
         new_args = arguments[0];
     }
 
+    this.ast = null;
+
     this.definition_encountered = false;
 
     if (new_args != null && new_args.length == 4) {
@@ -71,20 +73,47 @@ function type_function() {
     this.isDefinitionEncountered = function() { return this.definition_encountered; }
 
     this.return_obj = null;
-    this.source_code = gen_code(this.ast, {beautify: true});
+    if (this.ast != null)
+        this.source_code = gen_code(this.ast, { beautify: true });
+    else
+        this.source_code = "";
     
     this.super_classes = [];
     this.sub_classes   = [];
     
-    this.classes_where_composed = [];
+    this.classes_where_composed = {};
     this.classes_this_composes = {};
     
     this.dependencies = {};
     
     this.class_members  = {};
-        
-    this.get_source_code = function() {
-        return this.source_code;
+       
+    this.add_classes_where_composed = function(name, obj) {
+        if (!this.classes_where_composed.hasOwnProperty(name)) {
+            this.classes_where_composed[name] = obj;            
+        }
+    }
+
+    this.get_source_code = function () {
+        if (this.source_code == "") {
+            if (this.ast != null) {
+                this.source_code = gen_code(this.ast, { beautify: true });
+            }
+        }
+
+        return "\n" + this.source_code + "\n";
+    }
+
+    this.generate_dependency_src_code = function () {
+        var src = "";
+        for (var key in this.dependencies) {
+            var obj = this.dependencies[key];
+            src = src + obj.generate_dependency_src_code();
+        }
+
+        src += "\n" + this.get_source_code() + "\n";
+
+        return src;
     }
     
     this.is_class_member_present = function(name) {
@@ -108,6 +137,40 @@ function type_function() {
         }
     }
 
+    this.get_dependencies = function () {
+        return this.dependencies;
+    }
+
+    // type choices: 
+    // object - returns all composition or objects
+    // non-object - returns all numbers & strings
+    // all
+    this.get_class_members = function (type) {
+        if (type == "all") {
+            return this.class_members;
+        }
+
+        var members = {};
+        if (type == "non-object") {
+            for (var key in this.class_members) {
+                var obj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                if (obj.type == "num" || obj.type == "string")
+                    members[key] = obj;
+            }
+        }
+
+        if (type == "object") {
+
+            for (var key in this.class_members) {
+                var obj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                if (obj.type == "name" || obj.type == "composition")
+                    members[key] = obj;
+            }
+        }
+
+        return members;
+    }
+
     this.walk_function = function () {
         // Walk the ast for the function alone to generate the dependency graph
         var code_ast = this.ast[1][0][3];
@@ -120,7 +183,7 @@ function type_function() {
                     case "assign_expr":
                         var right_expr = expr.right_expr;
                         var left_expr = expr.left_expr;
-                        
+
                         var left_expr_start_line = -1; var right_expr_start_line = -1;
                         if (Introspect.typeOf(right_expr.token) == "object")
                             right_expr_start_line = right_expr.token.start.line;
@@ -135,11 +198,17 @@ function type_function() {
                         var left_expr_name = get_qualified_name(parse_expr(left_expr), ((left_expr.name == "this") ? this : null));
 
                         if (right_expr.type == "composition") {
-                            // @todo: Redo
                             this.classes_this_composes[right_expr.name] = right_expr;
+                            // Now add it to the class which is composed (but don't add if it derives from Object
+                            if (right_expr.name != "Object") {
+                                var class_composed = factory(right_expr.name, right_expr.type, type_function, right_expr.token, null, []);
+                            }
+
+                            class_composed.add_classes_where_composed(this.name, this);
+                            this.add_dependency(right_expr.name);
                         }
 
-                        var left_obj = type_object_factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
+                        var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
 
                         var right_obj = null;
 
@@ -150,7 +219,8 @@ function type_function() {
                             // Now check if the expr type is "name" or not
                             if (right_expr.type == "name") {
                                 this.add_dependency(right_expr_name);
-                                right_obj = type_object_factory(right_expr_name, right_expr.type, type_object, right_expr.token, ((right_expr.name == "this") ? this : null));
+                                right_obj = factory(right_expr_name, right_expr.type, type_object, right_expr.token, ((right_expr.name == "this") ? this : null));
+
                                 // Check if this is a global variable or defun
                                 if (GlobalIntellisenseRoot.is_defun_present(right_expr.name)) {
                                     right_expr.type = "function";
@@ -162,8 +232,8 @@ function type_function() {
                                 right_obj.add_usage(right_expr_usage_obj);
                             }
 
-                            if (left_obj.type == "" || left_obj.type == null || left_obj.type == undefined)
-                                left_obj.type = right_expr.type;
+                            // if (left_obj.type == "" || left_obj.type == null || left_obj.type == undefined)
+                            left_obj.type = right_expr.type;
 
                             // Add the usage for the class member
                             left_obj.add_usage(left_expr_usage_obj, right_expr.type);
@@ -204,9 +274,22 @@ function type_function() {
     // Functions executed in constructor
     if (this.ast != null)
         this.walk_function();
-}
 
-// type_function.prototype = type_object;
+//    this.generate_data_members = function () {
+//        if (this.ast != null) {
+//            try {
+//                'use strict';
+//                this.code = this.generate_dependency_src_code();
+
+//                var eval_code = eval("(" + this.code + ")");
+//                this.obj = new eval_code();
+//                this.data_members = Introspect.get_all_variables(this, this.obj);
+//            } catch (e) {
+//                alert(e);
+//            }
+//        }
+//    }
+}
 
 function type_expression() {
     type_object.call(this);    
@@ -253,11 +336,11 @@ function create_usage_object(name, ast, line) {
 }
 
 // Global Method for creating type_objects. Use this method only
-function type_object_factory(name, obj_type, constructor_call, token, parent, args) {
+function factory(name, obj_type, constructor_call, token, parent, args) {
     var found = false;
     if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
         var obj = GlobalIntellisenseRoot.obj_dict[name];
-        if (obj.type == "defun" || obj.type == "function") {
+        if (obj_type == "defun" || obj_type == "function") {
             if (!obj.isDefinitionEncountered()) {
                 obj.setArgs(args);
                 obj.walk_function();
@@ -387,6 +470,14 @@ function global_node() {
 
     this.get_global_variables = function () {
         return this.global_vars;
+    }
+
+    this.get_from_global_dict = function (name) {
+        if (this.obj_dict.hasOwnProperty(name)) {
+            return this.obj_dict[name];
+        } else {
+            alert(name + " has not been seen previously");
+        }
     }
 }
 

@@ -79,17 +79,17 @@ function NodeGraph() {
     });
     menu.hide();
 
-    canvas.append("<ul id='vsmenu'><li>Global<\/li><li>Functions<\/li><li>Exit<\/li><\/ul>");
-    var vsmenu = $("#vsmenu");
-    vsmenu.css({
-        "position" : "absolute",
-        "left" : 100,
-        "top" : 0,
-        "z-index" : 5000,
-        "border" : "1px solid gray",
-        "padding" : 0
-    });
-    vsmenu.hide();
+//    canvas.append("<ul id='vsmenu'><li>Global<\/li><li>Functions<\/li><li>Exit<\/li><\/ul>");
+//    var vsmenu = $("#vsmenu");
+//    vsmenu.css({
+//        "position" : "absolute",
+//        "left" : 100,
+//        "top" : 0,
+//        "z-index" : 5000,
+//        "border" : "1px solid gray",
+//        "padding" : 0
+//    });
+//    vsmenu.hide();
     
     canvas.append("<div id='hit' />");
     hitConnect = $("#hit");
@@ -569,7 +569,7 @@ function NodeGraph() {
         txt.css({
             "width": nodeWidth - 8,
             "height" : text1_height,
-            "resize" : "auto",
+            "resize" : "none",
             "overflow" : "auto",
             "font-size" : "12px",
             "font-family" : "sans-serif",
@@ -596,7 +596,7 @@ function NodeGraph() {
             "width": nodeWidth - 8,
             "height": text2_height - 8,
             "top" : text1_height + 8,
-            "resize": "auto",
+            "resize": "none",
             "overflow": "auto",
             "font-size": "12px",
             "font-family": "sans-serif",
@@ -899,6 +899,13 @@ function NodeGraph() {
                 startx = 50;
                 starty += defaultNodeHeight + 20;
             }
+
+            // Get the data members for this class
+            var class_members = obj.get_class_members("all");
+            var str = class_members_to_string(class_members);
+
+            node.txt[0].value = str;
+
             node.txt[0].focus();
             currentNode = node;
         }

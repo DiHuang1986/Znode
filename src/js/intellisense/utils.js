@@ -90,3 +90,14 @@ function getTokenDisplayName(token_name) {
             break;
     }
 }
+
+// Returns the name & type of the object
+function class_members_to_string(class_members) {
+    var str = "";
+    for (var key in class_members) {
+        var obj = GlobalIntellisenseRoot.get_from_global_dict(key);
+        str = str + key + ": " + obj.type + "\n"; 
+    }
+
+    return str;
+}

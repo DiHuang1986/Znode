@@ -77,7 +77,7 @@ function walk_tree(ast) {
         },
 
         "function": function () {
-            var func = type_object_factory(ast[1], "function", type_function, this.parent, null, ["function", ast[1], ["toplevel", [ast]], ast[2]]);
+            var func = factory(ast[1], "function", type_function, this.parent, null, ["function", ast[1], ["toplevel", [ast]], ast[2]]);
             // var func = new type_function("function", ast[1], ["toplevel", [ast]], ast[2]);
             func.token = this.parent;
             return func;
@@ -96,7 +96,7 @@ function walk_tree(ast) {
         },
 
         "defun": function () {
-            var func = type_object_factory(ast[1], "defun", type_function, this.parent, null, ["defun", ast[1], ["toplevel", [ast]], ast[2]]);
+            var func = factory(ast[1], "defun", type_function, this.parent, null, ["defun", ast[1], ["toplevel", [ast]], ast[2]]);
             // var func = new type_function("defun", ast[1], ["toplevel", [ast]], ast[2]);
             func.token = this.parent;
             return func;
@@ -190,7 +190,7 @@ function parse_call(ast) {
         usage_obj.line = call_obj.token.start.line;
         
         // Get the object for this one.
-        var call_function_obj = type_object_factory(call_obj.name, "call", type_function_call, call_obj.token, null, null);
+        var call_function_obj = factory(call_obj.name, "call", type_function_call, call_obj.token, null, null);
         call_function_obj.add_usage(usage_obj);
     }
     
@@ -206,8 +206,8 @@ function parse_prototype_ast(ast) {
     var code = gen_code(["toplevel", [ast]]);
 
     // Find the classes to setup the inheritance
-    var inherited_class = type_object_factory(left_expr.name, "defun", type_function, prototype_expr.token, null, null);
-    var base_class = type_object_factory(right_expr.name, "defun", type_function, prototype_expr.token, null, null);
+    var inherited_class = factory(left_expr.name, "defun", type_function, prototype_expr.token, null, null);
+    var base_class = factory(right_expr.name, "defun", type_function, prototype_expr.token, null, null);
     
     inherited_class.super_classes.push(base_class.name);
     base_class.sub_classes.push(inherited_class.name);
