@@ -7,7 +7,7 @@ $(function () {
 
     // consider moving to NodeGraph
     $("#canvas").mousedown(function (e) {
-        if ((openWin.css("display") == "none") && (openComp.css("display") == "none")) {
+        if ((openWin.css("display") == "none") && (openComp.css("display") == "none")  && (openFunc.css("display") == "none")) {
             var children = $(e.target).children();
             if (children.length > 0) {
                 var type = children[0].tagName;
@@ -23,6 +23,9 @@ $(function () {
 
     var openComp = $('#openComp');
     openComp.hide();
+    
+    var openFunc = $('#openFunc');
+    openFunc.hide();
 
     $(".btn_").mouseenter(function () {
         $(this).animate({
@@ -56,15 +59,19 @@ $(function () {
         var classNames = $('#classNames');
         classNames.html(''); // clear the top element
         openComp.fadeIn();
-        // parse the project and display all the classes.
-        /*
-        classNames.append("<div class='className'>Class Name 1<\/div>");
-        classNames.append("<div class='className'>Class Name 2<\/div>");
-        classNames.append("<div class='className'>Class Name 3<\/div>");
-        */
         // Loop through all the global classes found.
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
+        }
+    });
+    
+    $('#function_view').click(function () {
+        var classNames = $('#classNames');
+        classNames.html(''); // clear the top element
+        openComp.fadeIn();
+        // Loop through all the global classes found.
+        for (var key in GlobalIntellisenseRoot.defun) {
+            classNames.append("<div class='classNameFun'>" + key + "<\/div>");
         }
     });
 
@@ -89,6 +96,7 @@ $(function () {
     $("#canvas").mousedown(function () {
         openWin.fadeOut();
         openComp.fadeOut();
+        openFunc.fadeOut();
     });
 
     $("#open_json").click(function () {
@@ -187,28 +195,53 @@ $(function () {
             "background-color": "white"
         });
     });
+    
+    $('.classNameFun').live('click', function(e) {
+        // open the function call window
+        var functionCalls = $('#functionCalls');
+        functionCalls.html(''); // clear the top element
+        openFunc.fadeIn();
+        // Loop through all the global classes found.
+        
+    }).live('mouseover', function () {
+        $(this).css({
+            "background-color": "#ededed"
+        });
+    }).live('mouseout', function () {
+        $(this).css({
+            "background-color": "white"
+        });
+    });
 
     $('.className').live('click', function (e) {
         var class_name = $(e.target).html();
         var obj = GlobalIntellisenseRoot.get_single_defun(class_name);
+        var intellisense = GlobalIntellisenseRoot;
+        var arr = [];
         var startx = 500;
         var starty = 100;
+        var i = 0;
         graph.clearAll();
+        for (var key in intellisense.defun) {
+            arr.push(intellisense.defun[key]);
+        }
         // This is where we need to check if the selected class exists in other classes by composition
         // and then draw all those classes<nodes> to the compDiv element. If no composition found, alert the user
 
         // draw the composition view here
-        graph.generateSingleNode(class_name, startx, starty);
+        graph.generateSingleNode(class_name, startx, starty, arr[i]);
         startx = 200;
         starty = defaultNodeHeight + 250;
+        i++;
         var composition_classes = obj.get_composition_classes();
         for (var key in composition_classes) {
-            graph.generateSingleNode(key, startx, starty);
+            graph.generateSingleNode(key, startx, starty, arr[i]);
             startx += defaultNodeWidth + 20;
             if (startx > $(window).width()) {
                 startx = 50;
                 starty += defaultNodeHeight + 20;
             }
+            i++;
         }
         $('#openComp').fadeOut();
     }).live('mouseover', function () {

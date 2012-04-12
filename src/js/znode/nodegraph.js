@@ -434,13 +434,14 @@ function NodeGraph() {
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
             n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
 
-        n.mouseup(function(){
-        g_selText = GetSelectedText();
-        if (g_selText.length != 0){
-            vsmenu.css({"left":mouseX - 10, "top":mouseY});
-            vsmenu.show();
-            }
-        });
+        /* This part fires the menu when selecting text inside a node.  */
+        // n.mouseup(function(){
+        // g_selText = GetSelectedText();
+        // if (g_selText.length != 0){
+            // vsmenu.css({"left":mouseX - 10, "top":mouseY});
+            // vsmenu.show();
+            // }
+        // });
 
         this.content = n;
 
@@ -806,8 +807,8 @@ function NodeGraph() {
         }
     }
     
-    this.generateSingleNode = function (name, startx, starty) {
-        var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, false);
+    this.generateSingleNode = function (name, startx, starty, obj) {
+        var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
         node_name_id_mapping[name] = node.getID();
         
         node.txt[0].focus();
