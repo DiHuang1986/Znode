@@ -711,8 +711,8 @@ function NodeGraph() {
                 });
 
                 txt.css({
-                    "width" : n.width() - 5,
-                    "height" : n.height() - bar.height() - 5
+                    "width" : n.width() - 10,
+                    "height" : n.height() - bar.height() - 10
                 });
 
                 positionLeft();
