@@ -31,6 +31,40 @@ function NodeGraph() {
     win.resize(resizePaper);
     resizePaper();
 
+    function arrowRotate(pointX, pointY, centerX, centerY, angle) {
+        var degree = angle * Math.PI / 180;
+        var newX = Math.cos(degree) * (pointX - centerX) - Math.sin(degree) * (pointY - centerY);
+        var newY = Math.sin(degree) * (pointX - centerX) + Math.cos(degree) * (pointY - centerY);
+        return { x: (newX + centerX), y: (newY + centerY) };
+    }
+
+    function arrow(x1, y1, x2, y2, linkType) {
+        var angle = Math.atan2(x1 - x2, y2 - y1);
+        angle = (angle / (2 * Math.PI)) * 360;
+        var points;
+        if (linkType == "composition") {
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 10), y: (y2 - 7) }, { x: (x2 - 10), y: (y2 + 7) }, { x: x2, y: y2}];
+        }
+        else if (linkType == "inheritance") {
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 20), y: (y2 - 8) }, { x: (x2 - 20), y: (y2 + 8) }, { x: x2, y: y2}];
+        }
+        else
+        {
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 20), y: (y2 - 8) }, { x: (x2 - 20), y: (y2 + 8) }, { x: x2, y: y2}];
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 10), y: (y2 - 7) }, { x: (x2 - 10), y: (y2 + 7) }, { x: x2, y: y2}];
+        }
+
+        var newPoints = [];
+        var center = { x: x2, y: y2 };
+
+        for (var i = 0; i < points.length; i++)
+            newPoints.push(arrowRotate(points[i].x, points[i].y, center.x, center.y, 90 + angle));
+
+        var arrowStr = "M" + x1 + " " + y1 + " L" + newPoints[0].x + " " + newPoints[0].y + " L" + newPoints[1].x + " " + newPoints[1].y + " M" + newPoints[0].x + " " + newPoints[0].y + " L" + newPoints[2].x + " " + newPoints[2].y + " M" + newPoints[3].x + " " + newPoints[3].y + " L" + newPoints[1].x + " " + newPoints[1].y + " M" + newPoints[3].x + " " + newPoints[3].y + " L" + newPoints[2].x + " " + newPoints[2].y;
+        return arrowStr;
+    };
+  
+
     this.getNodes = function () { return nodes; }
 
     canvas.append("<ul id='menu'><li>Left<\/li><li>Right<\/li><li>Top<\/li><li>Bottom<\/li><\/ul>");
@@ -397,7 +431,7 @@ function NodeGraph() {
         }
 
         this.PopoverHide = function() {
-            var id = "#node_text_" + this.id;
+            var id = "#node_text1_" + this.id;
             $(id).popover('hide');
         }
 
@@ -456,6 +490,7 @@ function NodeGraph() {
         this.y = function() {
             return n.position().top;
         }
+
         var nodeWidth = n.width();
         var nodeHeight = n.height();
 
@@ -521,14 +556,19 @@ function NodeGraph() {
                 }
             });
         }
-        
-        n.append("<textarea class='txt' id='node_text_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
+
+        var total_height = nodeHeight - bar.height() - 10;
+        var text1_height = total_height / 2;
+        var text2_height = total_height / 2;
+
+        // Add the 1st Textbox
+        n.append("<textarea class='txt' id='node_text1_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
         var txt = $(".node .txt").last();
         txt.css("position", "absolute");
 
         txt.css({
-            "width" : nodeWidth - 10,
-            "height" : nodeHeight - bar.height() - 10,
+            "width": nodeWidth - 8,
+            "height" : text1_height,
             "resize" : "auto",
             "overflow" : "auto",
             "font-size" : "12px",
@@ -544,11 +584,38 @@ function NodeGraph() {
 
         this.txt = txt;
         var src_code = this.getSourceCode();
-        $("#node_text_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
-        $("#node_text_" + this.id).attr('data-content', src_code);
+        $("#node_text1_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
+        $("#node_text1_" + this.id).attr('data-content', src_code);
+
+        // Add the 2nd TextBox
+        n.append("<textarea class='txt' id='node_text2_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
+        var txt2 = $(".node .txt").last();
+        txt2.css("position", "relative");
+
+        txt2.css({
+            "width": nodeWidth - 8,
+            "height": text2_height - 8,
+            "top" : text1_height + 8,
+            "resize": "auto",
+            "overflow": "auto",
+            "font-size": "12px",
+            "font-family": "sans-serif",
+            "border": "none",
+            "color": "white",
+            "background": "-webkit-gradient(linear, left top, left bottom, from(#FBB917), to(#AF7817))",
+            "z-index": 4
+        });
+
+        if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
+            txt2.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
+
+        this.txt2 = txt2;
+        var src_code = this.getSourceCode();
+        $("#node_text2_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
+        $("#node_text2_" + this.id).attr('data-content', src_code);
 
 
-
+        // Add the resizer
         n.append("<div class='resizer' />");
         var resizer = $(".node .resizer").last();
 
@@ -641,8 +708,9 @@ function NodeGraph() {
                 if(!c.removed) {
                     var nodeA = c.startNode.connectionPos(c.startConnection);
                     var nodeB = c.endNode.connectionPos(c.endConnection);
-                    c.attr("path", "M " + nodeA.x + " " + nodeA.y + " L " + nodeB.x + " " + nodeB.y);
-
+                    var updatePath = arrow(nodeA.x, nodeA.y, nodeB.x, nodeB.y, c.connType);
+                    // c.attr("path", "M " + nodeA.x + " " + nodeA.y + " L " + nodeB.x + " " + nodeB.y);
+                    c.attr("path", updatePath);
                 }
             }
         }
@@ -668,8 +736,9 @@ function NodeGraph() {
 
             var id = setInterval(function () {
                 var my = mouseY - 17;
-                link.attr("path", "M " + x + " " + y + " L " + mouseX + " " + my);
-
+                // link.attr("path", "M " + x + " " + y + " L " + mouseX + " " + my);
+                var updatePath = arrow(x, y, mouseX, mouseY, type, "inheritance");
+                link.attr("path", updatePath);
                 pathEnd.x = mouseX;
                 pathEnd.y = mouseY;
             }, 30);
@@ -693,26 +762,36 @@ function NodeGraph() {
             delete nodes[this.id];
         }
 
-        resizer.mousedown(function(e) {
+        resizer.mousedown(function (e) {
             currentNode = curr;
             e.preventDefault();
             startDrag(resizer, {
-                left : 20,
-                top : 20,
-                right : 500,
-                bottom : 500
-            }, function() {
+                left: 20,
+                top: 20,
+                right: 500,
+                bottom: 500
+            }, function () {
                 var loc = resizer.position();
                 var x = loc.left;
                 var y = loc.top;
+                var total_height = n.height() - bar.height() - 10;
+                var text1_height = total_height / 2;
+                var text2_height = text1_height - 8;
+
                 n.css({
-                    "width" : x + resizer.width() + 1,
-                    "height" : y + resizer.height() + 1
+                    "width": x + resizer.width() + 1,
+                    "height": y + resizer.height() + 1
                 });
 
                 txt.css({
-                    "width" : n.width() - 10,
-                    "height" : n.height() - bar.height() - 10
+                    "width": n.width() - 8,
+                    "height": text1_height
+                });
+
+                txt2.css({
+                    "width": n.width() - 8,
+                    "top": text1_height + 8,
+                    "height": text2_height
                 });
 
                 positionLeft();
