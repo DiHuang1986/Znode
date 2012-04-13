@@ -19,5 +19,6 @@ function wall2()
 // Define an object
 function brick()
 {
-  return true;
+    this.brickFunction = function() { return "this is a brick"; }
+    return true;
 }

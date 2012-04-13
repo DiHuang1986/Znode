@@ -1,3 +1,10 @@
+function get_node_from_id(graph_to_use, id_string) {
+    var clicked_element = id_string.split("_");
+    var id = parseInt(clicked_element[clicked_element.length - 1]);
+    var node = graph_to_use.getNode(id);    
+    return node;
+}
+
 var defaultNodeWidth = 200;
 var defaultNodeHeight = 100;
 var win = $(window);
@@ -438,7 +445,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         }
 
         this.PopoverHide = function() {
-            var id = "#" + canvas_name + "_node_text1_" + this.id;
+            var id = "#" + this.getHtmlIdName("node_text");
             $(id).popover('hide');
         }
 
@@ -457,8 +464,12 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         this.getIntellisenseObj = function() {
             return this.intellisenseObj;
         }
+
+        this.getHtmlIdName = function(name) {
+            return  canvas_name + "_" + name + "_" + this.id;
+        }
         
-        canvas.append("<div id='" + canvas_name + "_node_" + this.id + "' class='node shadow'/>");
+        canvas.append("<div id='" + this.getHtmlIdName("node") + "' class='node shadow'/>");
         var n = $(".node").last();
         n.css({
             "position" : "absolute",
@@ -468,20 +479,13 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             "height" : h,
             "border" : "1px solid black",
             "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+            // "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
             "-webkit-border-radius" : "10px"
         });
         n.css("z-index", zindex++);
 
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
             n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
-
-//        n.mouseup(function(){
-//        g_selText = GetSelectedText();
-//        if (g_selText.length != 0){
-//            vsmenu.css({"left":mouseX - 10, "top":mouseY});
-//            vsmenu.show();
-//            }
-//        });
 
         this.content = n;
 
@@ -517,7 +521,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             return "No Source Defined";
         }
 
-        n.append("<div class='bar'><center><b>" + this.getIntellisenseObjName() + "</center></div>");
+        n.append("<div class='bar'></div>");
         var bar = $(".node .bar").last();
         bar.css({
             "border-top-left-radius": "8px",
@@ -575,8 +579,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         }
 
         if (!noDelete) {
-            n.append("<img id='" + canvas_name + "_inheritance_" + this.id + "' width=15 height=15 src='img/inheritance.png'><\/img>");
-            var inheritance = $("#" + canvas_name + "_inheritance_" + this.id);
+            n.append("<img id='" + this.getHtmlIdName("inheritance") + "' width=15 height=15 src='img/inheritance.png' rel='tooltip' title='Show Inheritance Diagram'><\/img>");
+            var inheritance = $("#" + this.getHtmlIdName("inheritance"));
             inheritance.css({
                 "visibility": "visible",
                 "border-top-left-radius": "8px",
@@ -595,9 +599,10 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 "z-index": 100
             });
 
+            inheritance.tooltip('hide');
+
             inheritance.click(function (event) {
-                var clicked_element = event.target.id.split("_");
-                var id = parseInt(clicked_element[clicked_element.length - 1]);
+                var orig_node = get_node_from_id(graph, event.target.id);
 
                 try {
                     // Delete the DOM element
@@ -608,11 +613,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                 var inheritance_graph = new NodeGraph(inheritance_canvas_id, 100, 100, "inheritance_canvas");
                 inheritance_graph.clearAll();
-                var orig_node = graph.getNode(id);
 
                 $("#InheritanceView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
                 $("#InheritanceView").modal('show');
-                // inheritance_graph.addNode(50, 50, defaultNodeWidth, defaultNodeHeight, false);
 
                 var startx = 100; var starty = 100;
                 // Get the object
@@ -638,8 +641,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         }
 
         if (!noDelete) {
-            n.append("<img id='" + canvas_name + "_composition_" + this.id + "' width=15 height=15 src='img/composition.png'><\/img>");
-            var composition = $("#" + canvas_name + "_composition_" + this.id);
+            n.append("<img id='" + this.getHtmlIdName("composition") + "' width=15 height=15 src='img/composition.png' rel='tooltip' title='Show which classes compose this'><\/img>");
+            var composition = $("#" + this.getHtmlIdName("composition"));
             composition.css({
                 "visibility": "visible",
                 "border-top-left-radius": "8px",
@@ -657,11 +660,13 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 "background-color": "black",
                 "z-index": 100
             });
+
+            composition.tooltip('hide');
         }
 
         if (!noDelete) {
-            n.append("<img id='" + canvas_name + "_usage_" + this.id + "' width=15 height=15 src='img/usage.png'><\/img>");
-            var usage = $("#" + canvas_name + "_usage_" + this.id);
+            n.append("<img id='" + this.getHtmlIdName("usage") + "' width=15 height=15 src='img/usage.png' rel='tooltip' title='Show where this is used'><\/img>");
+            var usage = $("#" + this.getHtmlIdName("usage"));
             usage.css({
                 "visibility": "visible",
                 "border-top-left-radius": "8px",
@@ -679,77 +684,130 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 "background-color": "black",
                 "z-index": 100
             });
+
+            usage.tooltip('hide');
         }
+
+       if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("source") + "' width=15 height=15 src='img/source.png' rel='tooltip' title='Source View'><\/img>");
+            var source = $("#" + this.getHtmlIdName("source"));
+            source.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 65,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            source.tooltip('hide');
+        }
+
+        source.click( function(event) {
+            var orig_node = get_node_from_id(graph, event.target.id);            
+            var src = orig_node.getSourceCode();
+            $("#source_body").empty();
+            $("#source_body").append('<pre class="source_code"></pre>');
+            $(".source_code").append(src);
+            $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
+            $("#SourceViewPopup").modal('show');
+        });
+
 
         function viewButtonsToggle(show) {
             if (show == false) {
                 inheritance.css({ 'visibility': 'hidden' });
                 composition.css({ 'visibility': 'hidden' });
                 usage.css({ 'visibility': 'hidden' });
+                source.css({ 'visibility' : 'hidden' });
             } else {
                 inheritance.css({ 'visibility': 'visible' });
                 composition.css({ 'visibility': 'visible' });
                 usage.css({ 'visibility': 'visible' });
+                source.css({ 'visibility' : 'visible' });
             }
         }
 
-        var total_height = nodeHeight - bar.height() - 10;
-        var text1_height = total_height / 2;
-        var text2_height = total_height / 2;
+        // var total_height = nodeHeight - bar.height() - 8;
+        var total_height = n.height() - bar.height();
+        var text_height = total_height;
 
         // Add the 1st Textbox
-        n.append("<textarea class='txt' id='" + canvas_name + "_node_text1_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
+        n.append("<div class='txt' id='" + this.getHtmlIdName("node_text") + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' \
+        data-original-title='Source Code'><center><p id='" + this.getHtmlIdName("node_text_p") + "' style='padding-top:20px; font-size:25px; font-family: sans-serif; font-weight:bold'></p></center></div>");
         var txt = $(".node .txt").last();
-        txt.css("position", "absolute");
+        var node_text_p = $("#" + this.getHtmlIdName("node_text_p"));
+        var node_text;
+        var node_text_name = this.getHtmlIdName("text_area");
 
-        txt.css({
-            "width": nodeWidth - 8,
-            "height" : text1_height,
-            "resize" : "none",
+        node_text_p.click(function() {
+            txt.empty();
+            txt.append("<textarea id='" + node_text_name + "'></textarea>");
+            node_text = $("#" + node_text_name);
+            node_text.css({
+            "width" : nodeWidth - 16,
+            "height" : text_height - 17,
+            "resize" : "auto",
             "overflow" : "auto",
             "font-size" : "12px",
             "font-family": "sans-serif",
+            "border": "none",
+            "color": "black",
+            "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
+             // "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+            "z-index" : 4,
+            });
+        });
+
+        txt.css("position", "absolute");
+
+        txt.css({
+            // "width": nodeWidth - 8,
+            "width" : nodeWidth,
+            "height" : text_height,
+            "readonly" : "readonly",
+            "resize" : "none",
+            "overflow" : "auto",
+            "font-size" : "25px",
+            "font-family": "sans-serif",
             "font-weight": "bold",
             "border": "none",
-            "color": "white",
+            "color": "black",
+            "text-align" : "center",
+            // "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
             "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
-            "z-index" : 4
+            "z-index" : 4,
+            "-webkit-border-radius" : "10px",
         });
 
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
-            txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
+            txt.css({ "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))", });
 
         this.txt = txt;
         var src_code = this.getSourceCode();
-        $("#" + canvas_name + "_node_text1_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
-        $("#" + canvas_name + "_node_text1_" + this.id).attr('data-content', src_code);
+        $("#" + this.getHtmlIdName("node_text_p")).text(this.getIntellisenseObjName());
+        $("#" + this.getHtmlIdName("node_text")).attr('data-original-title', this.getIntellisenseObjName());
 
-        // Add the 2nd TextBox
-        n.append("<textarea class='txt' id='" + canvas_name + "_node_text2_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
-        var txt2 = $(".node .txt").last();
-        txt2.css("position", "relative");
+        
+        this.populateClassMembers = function() {
+            if (this.getIntellisenseObj() != null) {
+            var class_members = this.getIntellisenseObj().get_class_members("all");
+            var str = class_members_to_string(class_members);
+            // Now populate the members of the class into the data content
+            $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
+            }
+        }
 
-        txt2.css({
-            "width": nodeWidth - 8,
-            "height": text2_height - 8,
-            "top" : text1_height + 8,
-            "resize": "none",
-            "overflow": "auto",
-            "font-size": "12px",
-            "font-family": "sans-serif",
-            "border": "none",
-            "color": "white",
-            "background": "-webkit-gradient(linear, left top, left bottom, from(#FBB917), to(#AF7817))",
-            "z-index": 4
-        });
-
-        if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
-            txt2.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
-
-        this.txt2 = txt2;
-        var src_code = this.getSourceCode();
-        $("#" + canvas_name + "_node_text2_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
-        $("#" + canvas_name + "_node_text2_" + this.id).attr('data-content', src_code);
+        this.populateClassMembers();
 
 
         // Add the resizer
@@ -767,7 +825,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             "font-size" : "1px",
             "border" : "1px solid gray",
             "cursor" : "pointer",
-            "-webkit-border-radius" : "3px"
+            "-webkit-border-radius" : "2px"
         });
 
         n.append("<div class='left'>");
@@ -911,9 +969,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 var loc = resizer.position();
                 var x = loc.left;
                 var y = loc.top;
-                var total_height = n.height() - bar.height() - 10;
-                var text1_height = total_height / 2;
-                var text2_height = text1_height - 8;
+                // var total_height = n.height() - bar.height() - 8;
+                var total_height = n.height() - bar.height();
+                var text_height = total_height;
 
                 n.css({
                     "width": x + resizer.width() + 1,
@@ -921,14 +979,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 });
 
                 txt.css({
-                    "width": n.width() - 8,
-                    "height": text1_height
-                });
-
-                txt2.css({
-                    "width": n.width() - 8,
-                    "top": text1_height + 8,
-                    "height": text2_height + 1
+                    // "width": n.width() - 8,
+                    "width" : n.width(),
+                    "height": text_height,
                 });
 
                 positionLeft();

@@ -197,7 +197,7 @@
             <span class="btn btn-success fileinput-button"><i class="icon-plus icon-white"></i><span>
                 Add files...</span>
                 <input type="file" name="files[]" multiple="" onchange="handleFiles(this.files);">
-                </span><a class="btn" id="open_javascript_close_button">Close</a> <a class="btn btn-primary"
+                </span><a class="btn" id="open_javascript_close_button" onclick="$('#OpenJavascriptPopup').modal('hide');">Close</a> <a class="btn btn-primary"
                 id="parse_button" onclick="readFiles();">Parse</a>
         </div>
     </div>
@@ -206,14 +206,14 @@
         <div class="modal-header">
             <a class="close" data-dismiss="modal">x</a>
             <h3>
-                <center>Viewing Source Code - Currently viewing only Node 0. Please add Dropdown</center>
+                <center>Source Code</center>
             </h3>
         </div>
-        <div class="modal-body">
+        <div id="source_body" class="modal-body">
         <pre class="source_code"></pre>
         </div>
         <div class="modal-footer">
-            <a class="btn" id="A1">Close</a> 
+            <a class="btn" id="A1" onclick="$('#SourceViewPopup').modal('hide');">Close</a> 
         </div>
     </div>
 

@@ -132,7 +132,6 @@ $(function () {
         $(".source_code").append(src);
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');
-
     });
 
     $("#parse_button").click(function () {
