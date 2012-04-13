@@ -578,7 +578,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             n.append("<img id='" + canvas_name + "_inheritance_" + this.id + "' width=15 height=15 src='img/inheritance.png'><\/img>");
             var inheritance = $("#" + canvas_name + "_inheritance_" + this.id);
             inheritance.css({
-                "visibility": "hidden",
+                "visibility": "visible",
                 "border-top-left-radius": "8px",
                 "position": "absolute",
                 "padding-right": 5,
@@ -633,7 +633,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             n.append("<img id='" + canvas_name + "_composition_" + this.id + "' width=15 height=15 src='img/composition.png'><\/img>");
             var composition = $("#" + canvas_name + "_composition_" + this.id);
             composition.css({
-                "visibility": "hidden",
+                "visibility": "visible",
                 "border-top-left-radius": "8px",
                 "position": "absolute",
                 "padding-right": 5,
@@ -655,7 +655,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             n.append("<img id='" + canvas_name + "_usage_" + this.id + "' width=15 height=15 src='img/usage.png'><\/img>");
             var usage = $("#" + canvas_name + "_usage_" + this.id);
             usage.css({
-                "visibility": "hidden",
+                "visibility": "visible",
                 "border-top-left-radius": "8px",
                 "position": "absolute",
                 "padding-right": 5,
