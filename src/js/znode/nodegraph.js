@@ -686,6 +686,30 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             });
 
             usage.tooltip('hide');
+
+            usage.click( function(event) {
+                var orig_node = get_node_from_id(graph, event.target.id);            
+                var obj = orig_node.getIntellisenseObj();
+                $("#usageViewTableBody").empty();
+
+                var html = "";
+
+                var usage_list = obj.get_usage();
+
+                for (var key in usage_list) {
+                    html = html + "<tr><td><center>" + key + "</center></td>";
+                    
+                    var type = usage_list[key][0];
+                    html = html + "<td><center>" + type + "</center></td>";
+
+                    var usage_obj = usage_list[key][1];
+                    var code_str = usage_obj.get_code_string();
+                    html = html + "<td><center>" + code_str + "</center></td><tr>";
+                }
+
+                $("#usageViewTableBody").append(html);                
+                $("#UsageViewPopup").modal('show');
+            });
         }
 
        if (!noDelete) {
@@ -719,6 +743,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#source_body").append('<pre class="source_code"></pre>');
             $(".source_code").append(src);
             $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
+            $("#SourceViewPopup").css({ background: "#444444" });
             $("#SourceViewPopup").modal('show');
         });
 

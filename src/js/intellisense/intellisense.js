@@ -177,7 +177,7 @@ function parse_defun(func_name, ast) {
     usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
     usage_obj.line = defun_func.token.start.line;
     
-    defun_func.add_usage(usage_obj);
+    defun_func.add_usage(usage_obj, "Class Definition");
     GlobalIntellisenseRoot.add_obj("defun", defun_func);
     return defun_func;
 }
@@ -185,13 +185,13 @@ function parse_defun(func_name, ast) {
 function parse_call(ast) {
     var call_obj = walk_tree(ast);
     if (call_obj.name != "this") {
-        var usage_obj = new type_usage();
-        usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
-        usage_obj.line = call_obj.token.start.line;
+        var usage_obj = create_usage_object(call_obj.name, ast, call_obj.token.start.line);
+        // usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
+        // usage_obj.line = call_obj.token.start.line;
         
         // Get the object for this one.
         var call_function_obj = factory(call_obj.name, "call", type_function_call, call_obj.token, null, null);
-        call_function_obj.add_usage(usage_obj);
+        call_function_obj.add_usage(usage_obj, "Function Call");
     }
     
     return call_obj;
@@ -200,8 +200,12 @@ function parse_call(ast) {
 function parse_prototype_ast(ast) {
     var prototype_expr = null;
     prototype_expr = walk_tree(ast);
+    
     var left_expr = prototype_expr.left_expr;
+    var left_usage_obj = create_usage_object(prototype_expr.left_expr.name, ast, prototype_expr.token.start.line);
+    
     var right_expr = prototype_expr.right_expr;
+    var right_usage_obj = create_usage_object(prototype_expr.right_expr.name, ast, prototype_expr.token.start.line);
     
     var code = gen_code(["toplevel", [ast]]);
 
@@ -210,7 +214,10 @@ function parse_prototype_ast(ast) {
     var base_class = factory(right_expr.name, "defun", type_function, prototype_expr.token, null, null);
     
     inherited_class.super_classes.push(base_class.name);
+    inherited_class.add_usage("Prototype", left_usage_obj);
+    
     base_class.sub_classes.push(inherited_class.name);
+    base_class.add_usage(right_usage_obj);
     
     return prototype_expr;
 }

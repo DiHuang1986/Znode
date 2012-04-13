@@ -26,16 +26,17 @@ function type_object() {
         try {
             var line = usage_type.line;
             if (!this.usage.hasOwnProperty(line)) {
-                var dict = {};
-                if (type == undefined) dict[line] = usage_type;
-                else dict[line] = [type, usage_type];
-                
-                this.usage[line] = dict;
+                if (type == undefined) 
+                    this.usage[line] = ["undefined", usage_type];
+                else 
+                    this.usage[line] = [type, usage_type];
             }
         } catch(e) {
             // Do nothing as of now
         }
     }
+
+    this.get_usage = function () { return this.usage; }
 }
 
 // type = "defun" || "function"
@@ -171,6 +172,18 @@ function type_function() {
         return members;
     }
 
+    this.get_super_classes = function () {
+        return this.super_classes;
+    }
+
+    this.get_sub_classes = function () {
+        return this.sub_classes;
+    }
+
+    this.get_composition_classes = function () {
+        return this.classes_this_composes;
+    }
+
     this.walk_function = function () {
         // Walk the ast for the function alone to generate the dependency graph
         var code_ast = this.ast[1][0][3];
@@ -217,7 +230,7 @@ function type_function() {
                             GlobalIntellisenseRoot.is_global_var_present(left_expr_name)) {
 
                             // Now check if the expr type is "name" or not
-                            if (right_expr.type == "name") {
+                            if (right_expr.type == "name" || right_expr.type == "composition") {
                                 this.add_dependency(right_expr_name);
                                 right_obj = factory(right_expr_name, right_expr.type, type_object, right_expr.token, ((right_expr.name == "this") ? this : null));
 
@@ -229,7 +242,7 @@ function type_function() {
                                     right_expr.type = "global_var";
                                 }
                                 // Add the usage list for this.
-                                right_obj.add_usage(right_expr_usage_obj);
+                                right_obj.add_usage(right_expr_usage_obj, right_expr.type);
                             }
 
                             // if (left_obj.type == "" || left_obj.type == null || left_obj.type == undefined)
@@ -258,23 +271,11 @@ function type_function() {
             }
         }
     }
-            
-    this.get_super_classes = function() {
-        return this.super_classes;
-    }
-    
-    this.get_sub_classes = function() {
-        return this.sub_classes;
-    }
-
-    this.get_composition_classes = function () {
-        return this.classes_this_composes;
-    }
 
     // Functions executed in constructor
     if (this.ast != null)
         this.walk_function();
-
+            
 //    this.generate_data_members = function () {
 //        if (this.ast != null) {
 //            try {
@@ -312,6 +313,8 @@ function binary_expression() {
 function type_usage() {
     this.code_str = "";
     this.line = -1;
+
+    this.get_code_string = function () { return this.code_str; }
 }
 
 function type_function_call() {
@@ -328,7 +331,7 @@ function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
     ast = ["toplevel", [ast]];
     var code = gen_code(ast, {beautify : true});
-    usage_obj.code = code;
+    usage_obj.code_str = code;
     usage_obj.line = line;
     usage_obj.name = name;
     usage_obj.type = "usage_object";
