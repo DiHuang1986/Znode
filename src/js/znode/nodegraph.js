@@ -599,7 +599,15 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 var clicked_element = event.target.id.split("_");
                 var id = parseInt(clicked_element[clicked_element.length - 1]);
 
+                try {
+                    // Delete the DOM element
+                    $("#inheritance_canvas").empty();
+                } catch(e) {
+                    // Do nothing
+                }
+
                 var inheritance_graph = new NodeGraph(inheritance_canvas_id, 100, 100, "inheritance_canvas");
+                inheritance_graph.clearAll();
                 var orig_node = graph.getNode(id);
 
                 $("#InheritanceView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
