@@ -553,14 +553,17 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
                 var obj = orig_node.getIntellisenseObj();
                 var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
                 inheritance_graph.add_node_name_mapping(obj, node);
-                
+
                 startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
 
                 for (var i = 0; i < obj.super_classes.length; ++i) {
-                    var composition_class_name = obj.super_classes[i];
-                    var composition_obj = GlobalIntellisenseRoot.get_from_global_dict(composition_class_name);
+                    var base_class_name = obj.super_classes[i];
+                    var base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(base_class_name);
 
-                    var composition_node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, composition_obj);
+                    var base_class_node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, base_class_obj);
+
+                    inheritance_graph.add_node_name_mapping(base_class_obj, base_class_node);
+
                     startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
                 }
 
