@@ -217,7 +217,7 @@ function parse_prototype_ast(ast) {
     inherited_class.add_usage(left_usage_obj, "Prototype");
     
     base_class.sub_classes.push(inherited_class.name);
-    base_class.add_usage(right_usage_obj);
+    base_class.add_usage(right_usage_obj, "Prototype");
     
     return prototype_expr;
 }
