@@ -611,11 +611,10 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     // Do nothing
                 }
 
-                var inheritance_graph = new NodeGraph(inheritance_canvas_id, 100, 100, "secondary_canvas");
+                var inheritance_graph = new NodeGraph(secondary_canvas_id, 100, 100, "secondary_canvas");
                 inheritance_graph.clearAll();
 
                 $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
-                $("#SecondaryCanvasView").modal('show');
 
                 var startx = 100; var starty = 100;
                 // Get the object
@@ -637,6 +636,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 }
 
                 inheritance_graph.generateSingleInheritanceConnection(obj, node);
+                $("#SecondaryCanvasView").modal('show');
             });
         }
 
@@ -666,7 +666,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                 try {
                     // Delete the DOM element
-                    $("#composition_canvas").empty();
+                    $("#secondary_canvas").empty();
                 } catch(e) {
                     // Do nothing
                 }
@@ -675,7 +675,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 composition_graph.clearAll();
 
                 $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
-                $("#SecondaryCanvasView").modal('show');
 
                 var startx = 100; var starty = 100;
                 // Get the object
@@ -685,8 +684,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                 startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
 
-                for (var i = 0; i < obj.classes_where_composed.length; ++i) {
-                    var composition_base_class_name = obj.classes_where_composed[i];
+                for (var key in  obj.classes_where_composed) {
+                    var composition_base_class_name = key;
                     var composition_base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(composition_base_class_name);
 
                     var composition_base_class_node = composition_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, composition_base_class_obj);
@@ -697,6 +696,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 }
 
                 composition_graph.generateSingleCompositionConnection(obj, node);
+                $("#SecondaryCanvasView").modal('show');
             });
 
             composition.tooltip('hide');
@@ -781,7 +781,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#source_body").append('<pre class="source_code"></pre>');
             $(".source_code").append(src);
             $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
-            $("#SourceViewPopup").css({ background: "#444444" });
             $("#SourceViewPopup").modal('show');
         });
 
