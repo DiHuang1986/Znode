@@ -815,7 +815,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         });
 
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
-            txt.css({ "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))", });
+            txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))", });
 
         this.txt = txt;
         var src_code = this.getSourceCode();
@@ -824,7 +824,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
         
         this.populateClassMembers = function() {
-            if (this.getIntellisenseObj() != null) {
+            var intellisense_obj = this.getIntellisenseObj();
+            if (intellisense_obj != null && intellisense_obj == "defun") {
             var class_members = this.getIntellisenseObj().get_class_members("all");
             var str = class_members_to_string(class_members);
             // Now populate the members of the class into the data content
