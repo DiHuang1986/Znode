@@ -606,16 +606,16 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                 try {
                     // Delete the DOM element
-                    $("#inheritance_canvas").empty();
+                    $("#secondary_canvas").empty();
                 } catch(e) {
                     // Do nothing
                 }
 
-                var inheritance_graph = new NodeGraph(inheritance_canvas_id, 100, 100, "inheritance_canvas");
+                var inheritance_graph = new NodeGraph(inheritance_canvas_id, 100, 100, "secondary_canvas");
                 inheritance_graph.clearAll();
 
-                $("#InheritanceView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
-                $("#InheritanceView").modal('show');
+                $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                $("#SecondaryCanvasView").modal('show');
 
                 var startx = 100; var starty = 100;
                 // Get the object
@@ -659,6 +659,44 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 "font-size": "10px",
                 "background-color": "black",
                 "z-index": 100
+            });
+
+            composition.click(function (event) {
+                var orig_node = get_node_from_id(graph, event.target.id);
+
+                try {
+                    // Delete the DOM element
+                    $("#composition_canvas").empty();
+                } catch(e) {
+                    // Do nothing
+                }
+
+                var composition_graph = new NodeGraph(secondary_canvas_id, 100, 100, "secondary_canvas");
+                composition_graph.clearAll();
+
+                $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                $("#SecondaryCanvasView").modal('show');
+
+                var startx = 100; var starty = 100;
+                // Get the object
+                var obj = orig_node.getIntellisenseObj();
+                var node = composition_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                composition_graph.add_node_name_mapping(obj, node);
+
+                startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+
+                for (var i = 0; i < obj.classes_where_composed.length; ++i) {
+                    var composition_base_class_name = obj.classes_where_composed[i];
+                    var composition_base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(composition_base_class_name);
+
+                    var composition_base_class_node = composition_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, composition_base_class_obj);
+
+                    composition_graph.add_node_name_mapping(composition_base_class_obj, composition_base_class_node);
+
+                    startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+                }
+
+                composition_graph.generateSingleCompositionConnection(obj, node);
             });
 
             composition.tooltip('hide');
@@ -767,8 +805,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         var text_height = total_height;
 
         // Add the 1st Textbox
-        n.append("<div class='txt' id='" + this.getHtmlIdName("node_text") + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' \
-        data-original-title='Source Code'><center><p id='" + this.getHtmlIdName("node_text_p") + "' style='padding-top:20px; font-size:25px; font-family: sans-serif; font-weight:bold'></p></center></div>");
+        n.append("<div class='txt' id='" + this.getHtmlIdName("node_text") + "'" + " spellcheck='false' rel='popover' data-content='No Data Members' data-original-title='Data Members'><center><p id='" + this.getHtmlIdName("node_text_p") + "' style='padding-top:20px; font-size: 18px; font-family: sans-serif; font-weight:bold'></p></center></div>");
         var txt = $(".node .txt").last();
         var node_text_p = $("#" + this.getHtmlIdName("node_text_p"));
         var node_text;

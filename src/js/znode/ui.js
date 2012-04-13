@@ -1,6 +1,6 @@
 var graph;
 var main_canvas_id = "main_canvas";
-var inheritance_canvas_id = "inheritance_canvas";
+var secondary_canvas_id = "secondary_canvas";
 
 $(function () {
     initialize();
