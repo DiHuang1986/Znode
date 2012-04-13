@@ -4,7 +4,7 @@ var inheritance_canvas_id = "inheritance_canvas";
 
 $(function () {
     initialize();
-    graph = new NodeGraph(main_canvas_id, main_canvas_width, main_canvas_height);
+    graph = new NodeGraph(main_canvas_id, main_canvas_width, main_canvas_height, "main_canvas");
     // composition view
 
     // consider moving to NodeGraph

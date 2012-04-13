@@ -12,7 +12,7 @@ function initialize() {
     main_canvas_height = win.height() - topHeight;
 }
 
-function NodeGraph(canvas_id, canvas_width, canvas_height) {
+function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
     var canvas = $("#" + canvas_id);
     var overlay = $("#overlay");
     var currentNode;
@@ -30,6 +30,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
     var hitConnect;
     var key = {};
     var SHIFT = 16;
+    var canvas_name = canvasName;
 
     var paper = new Raphael(canvas_id, "100", "100");
 
@@ -437,7 +438,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
         }
 
         this.PopoverHide = function() {
-            var id = "#node_text1_" + this.id;
+            var id = "#" + canvas_name + "_node_text1_" + this.id;
             $(id).popover('hide');
         }
 
@@ -457,7 +458,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
             return this.intellisenseObj;
         }
         
-        canvas.append("<div class='node shadow'/>");
+        canvas.append("<div id='" + canvas_name + "_node_" + this.id + "' class='node shadow'/>");
         var n = $(".node").last();
         n.css({
             "position" : "absolute",
@@ -516,123 +517,13 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
             return "No Source Defined";
         }
 
-        if (!noDelete) {
-            n.append("<img id='inheritance_" + this.id + "' width=15 height=15 src='img/inheritance.png'><\/img>");
-            var inheritance = $("#inheritance_" + this.id);
-            inheritance.css({
-                "visibility": "hidden",
-                "border-top-left-radius": "8px",
-                "position": "absolute",
-                "padding-right": 5,
-                "padding-top": 3,
-                "padding-left": 5,
-                "padding-bottom": 2,
-                "color": "white",
-                "font-family": "sans-serif",
-                "top": 0,
-                "right": 5,
-                "cursor": "pointer",
-                "font-size": "10px",
-                "background-color": "black",
-                "z-index": 100
-            });
-
-            inheritance.click(function (event) {
-                var clicked_element = event.target.id;
-                var id = parseInt(clicked_element.split("_")[1]);
-
-                var inheritance_graph = new NodeGraph(inheritance_canvas_id);
-                var orig_node = graph.getNode(id);
-
-                $("#InheritanceView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
-                $("#InheritanceView").modal('show');
-                // inheritance_graph.addNode(50, 50, defaultNodeWidth, defaultNodeHeight, false);
-
-                var startx = 100; var starty = 100;
-                // Get the object
-                var obj = orig_node.getIntellisenseObj();
-                var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
-                inheritance_graph.add_node_name_mapping(obj, node);
-
-                startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
-
-                for (var i = 0; i < obj.super_classes.length; ++i) {
-                    var base_class_name = obj.super_classes[i];
-                    var base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(base_class_name);
-
-                    var base_class_node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, base_class_obj);
-
-                    inheritance_graph.add_node_name_mapping(base_class_obj, base_class_node);
-
-                    startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
-                }
-
-                inheritance_graph.generateSingleInheritanceConnection(obj, node);
-            });
-        }
-
-        if (!noDelete) {
-            n.append("<img id='composition_" + this.id + "' width=15 height=15 src='img/composition.png'><\/img>");
-            var composition = $("#composition_" + this.id);
-            composition.css({
-                "visibility": "hidden",
-                "border-top-left-radius": "8px",
-                "position": "absolute",
-                "padding-right": 5,
-                "padding-top": 3,
-                "padding-left": 5,
-                "padding-bottom": 2,
-                "color": "white",
-                "font-family": "sans-serif",
-                "top": 0,
-                "right": 25,
-                "cursor": "pointer",
-                "font-size": "10px",
-                "background-color": "black",
-                "z-index": 100
-            });
-        }
-
-        if (!noDelete) {
-            n.append("<img id='usage_" + this.id + "' width=15 height=15 src='img/usage.png'><\/img>");
-            var usage = $("#usage_" + this.id);
-            usage.css({
-                "visibility": "hidden",
-                "border-top-left-radius": "8px",
-                "position": "absolute",
-                "padding-right": 5,
-                "padding-top": 3,
-                "padding-left": 5,
-                "padding-bottom": 2,
-                "color": "white",
-                "font-family": "sans-serif",
-                "top": 0,
-                "right": 45,
-                "cursor": "pointer",
-                "font-size": "10px",
-                "background-color": "black",
-                "z-index": 100
-            });
-        }
-
-        function viewButtonsToggle(show) {
-            if (show == false) {
-                inheritance.css({ 'visibility': 'hidden' });
-                composition.css({ 'visibility': 'hidden' });
-                usage.css({ 'visibility': 'hidden' });
-            } else {
-                inheritance.css({ 'visibility': 'visible' });
-                composition.css({ 'visibility': 'visible' });
-                usage.css({ 'visibility': 'visible' });                
-            }
-        }
-
-
         n.append("<div class='bar'><center><b>" + this.getIntellisenseObjName() + "</center></div>");
         var bar = $(".node .bar").last();
         bar.css({
             "border-top-left-radius": "8px",
             "border-top-right-radius": "8px",
+            "top": 0,
+            "left": 0,
             "height" : "20px",
             "background-color" : "black",
             "padding" : "0",
@@ -683,12 +574,123 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
             });
         }
 
+        if (!noDelete) {
+            n.append("<img id='" + canvas_name + "_inheritance_" + this.id + "' width=15 height=15 src='img/inheritance.png'><\/img>");
+            var inheritance = $("#" + canvas_name + "_inheritance_" + this.id);
+            inheritance.css({
+                "visibility": "hidden",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 5,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            inheritance.click(function (event) {
+                var clicked_element = event.target.id.split("_");
+                var id = parseInt(clicked_element[clicked_element.length - 1]);
+
+                var inheritance_graph = new NodeGraph(inheritance_canvas_id, 100, 100, "inheritance_canvas");
+                var orig_node = graph.getNode(id);
+
+                $("#InheritanceView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                $("#InheritanceView").modal('show');
+                // inheritance_graph.addNode(50, 50, defaultNodeWidth, defaultNodeHeight, false);
+
+                var startx = 100; var starty = 100;
+                // Get the object
+                var obj = orig_node.getIntellisenseObj();
+                var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                inheritance_graph.add_node_name_mapping(obj, node);
+
+                startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+
+                for (var i = 0; i < obj.super_classes.length; ++i) {
+                    var base_class_name = obj.super_classes[i];
+                    var base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(base_class_name);
+
+                    var base_class_node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, base_class_obj);
+
+                    inheritance_graph.add_node_name_mapping(base_class_obj, base_class_node);
+
+                    startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+                }
+
+                inheritance_graph.generateSingleInheritanceConnection(obj, node);
+            });
+        }
+
+        if (!noDelete) {
+            n.append("<img id='" + canvas_name + "_composition_" + this.id + "' width=15 height=15 src='img/composition.png'><\/img>");
+            var composition = $("#" + canvas_name + "_composition_" + this.id);
+            composition.css({
+                "visibility": "hidden",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 25,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+        }
+
+        if (!noDelete) {
+            n.append("<img id='" + canvas_name + "_usage_" + this.id + "' width=15 height=15 src='img/usage.png'><\/img>");
+            var usage = $("#" + canvas_name + "_usage_" + this.id);
+            usage.css({
+                "visibility": "hidden",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 45,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+        }
+
+        function viewButtonsToggle(show) {
+            if (show == false) {
+                inheritance.css({ 'visibility': 'hidden' });
+                composition.css({ 'visibility': 'hidden' });
+                usage.css({ 'visibility': 'hidden' });
+            } else {
+                inheritance.css({ 'visibility': 'visible' });
+                composition.css({ 'visibility': 'visible' });
+                usage.css({ 'visibility': 'visible' });
+            }
+        }
+
         var total_height = nodeHeight - bar.height() - 10;
         var text1_height = total_height / 2;
         var text2_height = total_height / 2;
 
         // Add the 1st Textbox
-        n.append("<textarea class='txt' id='node_text1_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
+        n.append("<textarea class='txt' id='" + canvas_name + "_node_text1_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
         var txt = $(".node .txt").last();
         txt.css("position", "absolute");
 
@@ -711,11 +713,11 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
 
         this.txt = txt;
         var src_code = this.getSourceCode();
-        $("#node_text1_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
-        $("#node_text1_" + this.id).attr('data-content', src_code);
+        $("#" + canvas_name + "_node_text1_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
+        $("#" + canvas_name + "_node_text1_" + this.id).attr('data-content', src_code);
 
         // Add the 2nd TextBox
-        n.append("<textarea class='txt' id='node_text2_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
+        n.append("<textarea class='txt' id='" + canvas_name + "_node_text2_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
         var txt2 = $(".node .txt").last();
         txt2.css("position", "relative");
 
@@ -738,8 +740,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height) {
 
         this.txt2 = txt2;
         var src_code = this.getSourceCode();
-        $("#node_text2_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
-        $("#node_text2_" + this.id).attr('data-content', src_code);
+        $("#" + canvas_name + "_node_text2_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
+        $("#" + canvas_name + "_node_text2_" + this.id).attr('data-content', src_code);
 
 
         // Add the resizer
