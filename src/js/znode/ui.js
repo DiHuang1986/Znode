@@ -1,12 +1,14 @@
 var graph;
+var main_canvas_id = "main_canvas";
+var inheritance_canvas_id = "inheritance_canvas";
 
 $(function () {
-
-    graph = new NodeGraph();
+    initialize();
+    graph = new NodeGraph(main_canvas_id, main_canvas_width, main_canvas_height);
     // composition view
 
     // consider moving to NodeGraph
-    $("#canvas").mousedown(function (e) {
+    $("#" + main_canvas_id).mousedown(function (e) {
         if ((openWin.css("display") == "none") && (openComp.css("display") == "none")) {
             var children = $(e.target).children();
             if (children.length > 0) {
@@ -56,12 +58,6 @@ $(function () {
         var classNames = $('#classNames');
         classNames.html(''); // clear the top element
         openComp.fadeIn();
-        // parse the project and display all the classes.
-        /*
-        classNames.append("<div class='className'>Class Name 1<\/div>");
-        classNames.append("<div class='className'>Class Name 2<\/div>");
-        classNames.append("<div class='className'>Class Name 3<\/div>");
-        */
         // Loop through all the global classes found.
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
@@ -142,7 +138,7 @@ $(function () {
     $("#parse_button").click(function () {
         // We should now take the code and parse it.
         var code = $("#textarea_code").val();
-
+        graph.clearAll();
         parseInit(code, "#PasteCodePopup");
     });
 

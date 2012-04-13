@@ -1,9 +1,19 @@
 var defaultNodeWidth = 200;
 var defaultNodeHeight = 100;
+var win = $(window);
 
-function NodeGraph() {
-    var win = $(window);
-    var canvas = $("#canvas");
+var topHeight = 0;
+var main_canvas_width = 0;
+var main_canvas_height = 0;
+
+function initialize() {
+    topHeight = $("#top_toolbar").height();
+    main_canvas_width = win.width();
+    main_canvas_height = win.height() - topHeight;
+}
+
+function NodeGraph(canvas_id, canvas_width, canvas_height) {
+    var canvas = $("#" + canvas_id);
     var overlay = $("#overlay");
     var currentNode;
     var currentConnection = {};
@@ -20,16 +30,23 @@ function NodeGraph() {
     var hitConnect;
     var key = {};
     var SHIFT = 16;
-    var topHeight = $("#top_toolbar").height();
 
-    var paper = new Raphael("canvas", "100", "100");
+    var paper = new Raphael(canvas_id, "100", "100");
 
-    function resizePaper() {
-        paper.setSize(win.width(), win.height() - topHeight);
+    function resizePaper(width, height) {
+        paper.setSize(width, height);
+    }
+
+    this.getNode = function(id) {
+        if (nodes.hasOwnProperty(id)) {
+            return nodes[id];
+        } else {
+            alert("Graph doesn't have this object: " + id);            
+        }
     }
 
     win.resize(resizePaper);
-    resizePaper();
+    resizePaper(canvas_width, canvas_height);
 
     function arrowRotate(pointX, pointY, centerX, centerY, angle) {
         var degree = angle * Math.PI / 180;
@@ -48,10 +65,10 @@ function NodeGraph() {
         else if (linkType == "inheritance") {
             points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 20), y: (y2 - 8) }, { x: (x2 - 20), y: (y2 + 8) }, { x: x2, y: y2}];
         }
-        else
-        {
+        else {
+            
+            // Inheritance link
             points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 20), y: (y2 - 8) }, { x: (x2 - 20), y: (y2 + 8) }, { x: x2, y: y2}];
-            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 10), y: (y2 - 7) }, { x: (x2 - 10), y: (y2 + 7) }, { x: x2, y: y2}];
         }
 
         var newPoints = [];
@@ -67,7 +84,7 @@ function NodeGraph() {
 
     this.getNodes = function () { return nodes; }
 
-    canvas.append("<ul id='menu'><li>Left<\/li><li>Right<\/li><li>Top<\/li><li>Bottom<\/li><\/ul>");
+    // canvas.append("<ul id='menu'><li>Left<\/li><li>Right<\/li><li>Top<\/li><li>Bottom<\/li><\/ul>");
     var menu = $("#menu");
     menu.css({
         "position" : "absolute",
@@ -78,19 +95,7 @@ function NodeGraph() {
         "padding" : 0
     });
     menu.hide();
-
-//    canvas.append("<ul id='vsmenu'><li>Global<\/li><li>Functions<\/li><li>Exit<\/li><\/ul>");
-//    var vsmenu = $("#vsmenu");
-//    vsmenu.css({
-//        "position" : "absolute",
-//        "left" : 100,
-//        "top" : 0,
-//        "z-index" : 5000,
-//        "border" : "1px solid gray",
-//        "padding" : 0
-//    });
-//    vsmenu.hide();
-    
+        
     canvas.append("<div id='hit' />");
     hitConnect = $("#hit");
     hitConnect.css({
@@ -204,7 +209,7 @@ function NodeGraph() {
         currentNode = node;
     }
 
-    function createConnection(a, conA, b, conB) {
+    function createConnection(a, conA, b, conB, connType) {
         var link = paper.path("M 0 0 L 1 1");
         link.attr({
             "stroke-width" : 2
@@ -214,10 +219,10 @@ function NodeGraph() {
         a.addConnection(link);
         currentConnection = link;
         currentNode = a;
-        saveConnection(b, conB);
+        saveConnection(b, conB, connType);
     }
 
-    function saveConnection(node, dir) {
+    function saveConnection(node, dir, type) {
         if(!currentConnection)
             return;
         if(!currentConnection.parent)
@@ -227,6 +232,7 @@ function NodeGraph() {
         currentConnection.endNode = node;
         currentConnection.startConnection = currentConnection.parent;
         currentConnection.endConnection = node[dir.toLowerCase()];
+        currentConnection.connType = type;
 
         currentConnection.id = connectionId;
         connections[connectionId] = currentConnection;
@@ -468,13 +474,13 @@ function NodeGraph() {
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
             n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
 
-        n.mouseup(function(){
-        g_selText = GetSelectedText();
-        if (g_selText.length != 0){
-            vsmenu.css({"left":mouseX - 10, "top":mouseY});
-            vsmenu.show();
-            }
-        });
+//        n.mouseup(function(){
+//        g_selText = GetSelectedText();
+//        if (g_selText.length != 0){
+//            vsmenu.css({"left":mouseX - 10, "top":mouseY});
+//            vsmenu.show();
+//            }
+//        });
 
         this.content = n;
 
@@ -510,6 +516,115 @@ function NodeGraph() {
             return "No Source Defined";
         }
 
+        if (!noDelete) {
+            n.append("<img id='inheritance_" + this.id + "' width=15 height=15 src='img/inheritance.png'><\/img>");
+            var inheritance = $("#inheritance_" + this.id);
+            inheritance.css({
+                "visibility": "hidden",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 5,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            inheritance.click(function (event) {
+                var clicked_element = event.target.id;
+                var id = parseInt(clicked_element.split("_")[1]);
+
+                var inheritance_graph = new NodeGraph(inheritance_canvas_id);
+                var orig_node = graph.getNode(id);
+
+                $("#InheritanceView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                $("#InheritanceView").modal('show');
+                // inheritance_graph.addNode(50, 50, defaultNodeWidth, defaultNodeHeight, false);
+
+                var startx = 100; var starty = 100;
+                // Get the object
+                var obj = orig_node.getIntellisenseObj();
+                var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                inheritance_graph.add_node_name_mapping(obj, node);
+                
+                startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+
+                for (var i = 0; i < obj.super_classes.length; ++i) {
+                    var composition_class_name = obj.super_classes[i];
+                    var composition_obj = GlobalIntellisenseRoot.get_from_global_dict(composition_class_name);
+
+                    var composition_node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, composition_obj);
+                    startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+                }
+
+                inheritance_graph.generateSingleInheritanceConnection(obj, node);
+            });
+        }
+
+        if (!noDelete) {
+            n.append("<img id='composition_" + this.id + "' width=15 height=15 src='img/composition.png'><\/img>");
+            var composition = $("#composition_" + this.id);
+            composition.css({
+                "visibility": "hidden",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 25,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+        }
+
+        if (!noDelete) {
+            n.append("<img id='usage_" + this.id + "' width=15 height=15 src='img/usage.png'><\/img>");
+            var usage = $("#usage_" + this.id);
+            usage.css({
+                "visibility": "hidden",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 45,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+        }
+
+        function viewButtonsToggle(show) {
+            if (show == false) {
+                inheritance.css({ 'visibility': 'hidden' });
+                composition.css({ 'visibility': 'hidden' });
+                usage.css({ 'visibility': 'hidden' });
+            } else {
+                inheritance.css({ 'visibility': 'visible' });
+                composition.css({ 'visibility': 'visible' });
+                usage.css({ 'visibility': 'visible' });                
+            }
+        }
+
+
         n.append("<div class='bar'><center><b>" + this.getIntellisenseObjName() + "</center></div>");
         var bar = $(".node .bar").last();
         bar.css({
@@ -525,6 +640,14 @@ function NodeGraph() {
             "-webkit-border-top-left-radius" : "8px",
             "-webkit-border-top-right-radius" : "8px"
         });
+
+        var viewButtonsEnabled = false;
+
+        bar.click(function () {
+            viewButtonsToggle(!viewButtonsEnabled);
+            viewButtonsEnabled = !viewButtonsEnabled;
+        });
+        
 
         if(!noDelete) {
             n.append("<img class='ex' width=15 height=15 src='img/close.png'><\/img>");
@@ -545,13 +668,13 @@ function NodeGraph() {
                 "background-color" : "black",
                 "z-index" : 100
             });
-            ex.hover(function() {
+            ex.hover(function () {
                 ex.css("color", "black");
-            }, function() {
+            }, function () {
                 ex.css("color", "white");
-            }).click(function() {
+            }).click(function () {
 
-                if(confirm("Are you sure you want to delete this node?")) {
+                if (confirm("Are you sure you want to delete this node?")) {
                     curr.remove();
                 }
             });
@@ -572,7 +695,8 @@ function NodeGraph() {
             "resize" : "none",
             "overflow" : "auto",
             "font-size" : "12px",
-            "font-family" : "sans-serif",
+            "font-family": "sans-serif",
+            "font-weight": "bold",
             "border": "none",
             "color": "white",
             "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
@@ -791,7 +915,7 @@ function NodeGraph() {
                 txt2.css({
                     "width": n.width() - 8,
                     "top": text1_height + 8,
-                    "height": text2_height
+                    "height": text2_height + 1
                 });
 
                 positionLeft();
@@ -817,8 +941,9 @@ function NodeGraph() {
         n.mouseenter(function() {
             n.css("z-index", zindex++);
         });
-    }
+    } // End of Node Class
 
+    // ------------------------------------------------ NodeGraph Members ---------------------------------------------------
     function hitTest(a, b) {
         var aPos = a.position();
         var bPos = b.position();
@@ -910,9 +1035,7 @@ function NodeGraph() {
             currentNode = node;
         }
 
-        // This is how we create an automatic connection between 2 nodes.
-        // createConnection(nodes[0], "right", nodes[1], "left");
-        this.generateConnections();
+        this.generateInheritanceConnections();
 
         // Now load the global variables 
         for (var key in intellisense.global_vars) {
@@ -930,23 +1053,38 @@ function NodeGraph() {
             currentNode = node;
         }
     }
+
+    this.generateSingleCompositionConnection = function(obj, node) {
+        // Now find all its parents and connect them
+        for (var i = 0; i < obj.classes_where_composed.length; ++i) {
+            var composition_class_name = obj.classes_where_composed[i];
+            var composition_node = this.getNodeFromName(composition_class_name);
+
+            var connectionPts = this.getConnectionPoints(node, composition_node);
+            createConnection(node, connectionPts[0], composition_node, connectionPts[1], "composition");
+        }
+    }
+
+    this.generateSingleInheritanceConnection = function (obj, node) {
+        // Now find all its parents and connect them
+        for (var i = 0; i < obj.super_classes.length; ++i) {
+            var parent_class_name = obj.super_classes[i];
+            var parent_node = this.getNodeFromName(parent_class_name);
+
+            var connectionPts = this.getConnectionPoints(node, parent_node);
+            createConnection(node, connectionPts[0], parent_node, connectionPts[1], "inheritance");
+        }
+    }
     
     // Generate Connections between the nodes based on the inheritance data
-    this.generateConnections = function () {
+    this.generateInheritanceConnections = function () {
         var intellisense = GlobalIntellisenseRoot;
         // For all global classes find it's parent
         for (var key in intellisense.defun) {
             var obj = intellisense.defun[key];
             var node = this.getNodeFromName(obj.name);
 
-            // Now find all its parents and connect them
-            for (var i = 0; i < obj.super_classes.length; ++i) {
-                var parent_class_name = obj.super_classes[i];
-                var parent_node = this.getNodeFromName(parent_class_name);
-
-                var connectionPts = this.getConnectionPoints(node, parent_node);
-                createConnection(node, connectionPts[0], parent_node, connectionPts[1]);
-            }
+            this.generateSingleInheritanceConnection(obj, node);
         }
     }
 
@@ -987,6 +1125,10 @@ function NodeGraph() {
         }
 
         return connectionPts;
+    }
+
+    this.add_node_name_mapping = function(obj, node) {
+        node_name_id_mapping[obj.name] = node.getID();
     }
     
     //function defaultNode() {
@@ -1045,6 +1187,7 @@ function NodeGraph() {
         json += ']}';
         return json;
     }
+
     function addSlashes(str) {
         str = str.replace(/\\/g, '\\\\');
         str = str.replace(/\'/g, '\\\'');

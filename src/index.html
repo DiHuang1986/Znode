@@ -101,7 +101,7 @@
         <!-- /navbar-inner -->
     </div>
     <!-- Main Canvas for drawing -->
-    <div id="canvas">
+    <div id="main_canvas">
     </div>    
     <!-- Composition View definition -->
     <div class="modal hide fade popup" id="OpenCompView">
@@ -215,6 +215,23 @@
         <div class="modal-footer">
             <a class="btn" id="A1">Close</a> 
         </div>
+    </div>
+
+    <div class="modal hide fade popup" style="max-height:1000; max-width:1000" id="InheritanceView">
+        <div class="modal-header" style="background-color: #2554C7; color:white">
+            <a class="close" data-dismiss="modal">x</a>
+            <h3>
+                <center>Inheritance View</center>
+            </h3>
+        </div>
+        <!--<div class="modal-body" style="max-height: 1000px;"> -->
+        <div id="inheritance_canvas" style="max-height: 1000; height=50%"></div>
+        <!-- </div> -->
+        <!--
+        <div class="modal-footer">
+            <a class="btn" id="A2">Close</a> 
+        </div>
+        -->
     </div>
 </body>
 </html>

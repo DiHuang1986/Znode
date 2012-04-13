@@ -40,7 +40,7 @@ function walk_tree(ast) {
             assign_expr.token = this.parent;
             assign_expr.type = "assign_expr";
 
-            assign_expr.left_expr = type_object_factory(ast[1][0][0], "var", type_object);
+            assign_expr.left_expr = factory(ast[1][0][0], "var", type_object);
             assign_expr.left_expr.token = this.parent;
             // assign_expr.left_expr.name = ast[1][0][0];
             assign_expr.right_expr = walk_tree(ast[1][0][1]);
