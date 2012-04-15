@@ -37,6 +37,8 @@ $(function () {
     });
 
     $("#clear_canvas").click(function () {
+        // Clear the Intellisense object
+        GlobalIntellisenseRoot = new global_node();
         graph.clearAll();
     });
     $("#help").click(function () {

@@ -545,12 +545,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
         var viewButtonsEnabled = false;
 
-//        bar.click(function () {
-//            viewButtonsToggle(!viewButtonsEnabled);
-//            viewButtonsEnabled = !viewButtonsEnabled;
-//        });
-//        
-
         if(!noDelete) {
             n.append("<img class='ex' width=15 height=15 src='img/close.png'><\/img>");
             var ex = $(".node .ex").last();
@@ -638,10 +632,12 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                     inheritance_graph.add_node_name_mapping(base_class_obj, base_class_node);
 
+                    var x1 = node.x(); var y1 = node.y(); var x2 = base_class_node.x(); var y2 = base_class_node.y();
+                    var arrowStr = arrow(x1, y1, x2, y2, "inheritance");
+
                     startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
                 }
 
-                node.updateConnections();
                 inheritance_graph.generateSingleInheritanceConnection(obj, node);
             });
         }
@@ -791,21 +787,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#SourceViewPopup").modal('show');
         });
 
-
-//        function viewButtonsToggle(show) {
-//            if (show == false) {
-//                inheritance.css({ 'visibility': 'hidden' });
-//                composition.css({ 'visibility': 'hidden' });
-//                usage.css({ 'visibility': 'hidden' });
-//                source.css({ 'visibility' : 'hidden' });
-//            } else {
-//                inheritance.css({ 'visibility': 'visible' });
-//                composition.css({ 'visibility': 'visible' });
-//                usage.css({ 'visibility': 'visible' });
-//                source.css({ 'visibility' : 'visible' });
-//            }
-//        }
-
         // var total_height = nodeHeight - bar.height() - 8;
         var total_height = n.height() - bar.height();
         var text_height = total_height;
@@ -868,7 +849,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         
         this.populateClassMembers = function() {
             var intellisense_obj = this.getIntellisenseObj();
-            if (intellisense_obj != null && intellisense_obj == "defun") {
+            if (intellisense_obj != null && intellisense_obj.type == "defun") {
             var class_members = this.getIntellisenseObj().get_class_members("all");
             var str = class_members_to_string(class_members);
             // Now populate the members of the class into the data content
@@ -965,6 +946,15 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             point.y = nLoc.top - topHeight + loc.top - 7;
             return point;
         }
+
+        function pausecomp(millis) 
+{
+var date = new Date();
+var curDate = null;
+
+do { curDate = new Date(); } 
+while(curDate-date < millis);
+} 
         
         function updateConnections() {
             for(var i in curr.connections) {
@@ -977,6 +967,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     c.attr("path", updatePath);
                 }
             }
+
         }
 
         this.updateConnections = updateConnections;
@@ -984,7 +975,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         function addLink(e) {
             currentNode = curr;
             e.preventDefault();
-            var link = this.getPaper().path("M 0 0 L 1 1");
+            var link = paper.path("M 0 0 L 1 1");
             link.attr({
                 "stroke-width" : 2
             });
