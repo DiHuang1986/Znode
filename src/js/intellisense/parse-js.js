@@ -692,9 +692,10 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                     labels      : []
             };
     
-        S.token = next();           
-        
-        this.entered_defun = false;
+        S.token = next();
+
+        // this.entered_defun = false;
+        this.entered_defun_stack = new Array();
         
         function is(type, value) {
                 return is_token(S.token, type, value);
@@ -772,38 +773,45 @@ function parse($TEXT, exigent_mode, embed_tokens) {
         };
 
         function maybe_embed_tokens(parser) {
-                if (embed_tokens) return function() {
-                        var start = S.token;
-                        var ast = parser.apply(this, arguments);
-                        ast[0] = add_tokens(ast[0], start, prev());
+            if (embed_tokens) return function () {
+                var start = S.token;
+                var ast = parser.apply(this, arguments);
+                ast[0] = add_tokens(ast[0], start, prev());
 
-                        switch(ast[0].name) {
-                            case "defun":
-                                parse_defun(arguments[1], ast);
-                                this.entered_defun = false;
-                                break;
+                switch (ast[0].name) {
+                    case "defun":
+                        parse_defun(arguments[1], ast);
+                        this.entered_defun_stack.pop();
+                        if (this.entered_defun_stack.length > 0)
+                            alert("This is an error. We shouldn't be hitting this");
+                        break;
 
-                            case "stat":
-                                // Check if the ast is a prototype stmt or not.
-                                if (_is_['prototype'](ast)) {
-                                    parse_prototype_ast(ast);
-                                }
-            
-                                break;
-                            
-                            case "var":
-                                if (this.entered_defun == false) {
-                                    parse_global_vars(ast);
-                                }
-                                break;
-                            case "call":
-                                parse_call(ast);
-                                break;
-                        }                        
-                        
-                        return ast;
-                };
-                else return parser;
+                    case "stat":
+                        // Check if the ast is a prototype stmt or not.
+                        if (_is_['prototype'](ast)) {
+                            parse_prototype_ast(ast);
+                        }
+
+                        break;
+
+                    case "var":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_global_vars(ast);
+                        }
+                        break;
+
+                    case "function":
+                        this.entered_defun_stack.pop();
+                        break;
+
+                    case "call":
+                        parse_call(ast);
+                        break;
+                }
+
+                return ast;
+            };
+            else return parser;
         };
 
         var statement = maybe_embed_tokens(function() {
@@ -970,8 +978,8 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                 return as("for-in", init, lhs, obj, in_loop(statement));
         };
 
-        var function_ = function(in_statement) {
-                this.entered_defun = true;
+        var function_ = function (in_statement) {
+                this.entered_defun_stack.push(true);
                 var name = is("name") ? prog1(S.token.value, next) : null;
                 if (in_statement && !name)
                         unexpected();

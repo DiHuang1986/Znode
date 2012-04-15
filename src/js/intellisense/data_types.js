@@ -24,7 +24,8 @@ function type_object() {
     
     this.add_usage = function(usage_type, type) {
         try {
-            var line = usage_type.line;
+            // Line numbers start from 0. We need to make it from 1
+            var line = usage_type.line + 1;
             if (!this.usage.hasOwnProperty(line)) {
                 if (type == undefined) 
                     this.usage[line] = ["undefined", usage_type];
@@ -267,6 +268,10 @@ function type_function() {
                         // If not then add it to unmet dependencies.
                         var call_expr = expr;
                         break;
+
+                    case "sub":
+                        var array_sub_expr = expr;
+                        break;
                 }
             }
         }
@@ -322,10 +327,17 @@ function type_function_call() {
     this.ast = null;
 }
 
-type_expression.prototype    = new type_object;
-assign_expression.prototype  = new type_object;
-binary_expression.prototype  = new type_object;
-type_function_call.prototype = new type_object;
+function type_array_subscript() {
+    type_object.call(this);
+    this.array = null;
+    this.subscript = null;
+}
+
+type_expression.prototype      = new type_object;
+assign_expression.prototype    = new type_object;
+binary_expression.prototype    = new type_object;
+type_function_call.prototype   = new type_object;
+type_array_subscript.prototype = new type_object;
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
@@ -387,10 +399,6 @@ function global_node() {
     this.defun = {};
     this.global_vars = {};
 
-    this._add_global_obj = function (global_var_name, global_var_obj) {
-        this.obj_dict[global_var_name] = global_var_obj;
-    }
-
     this._add_global_var = function (global_var_name, global_var_obj) {
         this.global_vars[global_var_name] = global_var_obj;
     }
@@ -403,12 +411,12 @@ function global_node() {
         switch (obj_type) {
             case "global_var":
                 this._add_global_var(obj.name, obj);
-                this._add_global_obj(obj.name, obj);
+                this.add_to_object_dictionary(obj.name, obj);
                 break;
 
             case "defun":
                 this._add_global_func(obj.name, obj);
-                this._add_global_obj(obj.name, obj);
+                this.add_to_object_dictionary(obj.name, obj);
                 break;
         }
     }
@@ -439,12 +447,16 @@ function global_node() {
         // If object already present, copy over the usage
         // This case will happen when we encounter an object name
         // we haven't seen before
-        if (this.is_present_in_object_dictionary(name)) {
-            var old_obj = this.obj_dict[name];
-            obj.usage.concat(old_obj.usage);
-        }
+        // Null values don't need to go into the object dictionary
+        if (name != "null") {
+            if (this.is_present_in_object_dictionary(name)) {
+                var old_obj = this.obj_dict[name];
+                // obj.usage.concat(old_obj.usage);
+                for (attr in old_obj.usage) { obj.usage[attr] = old_obj.usage[attr]; }
+            }
 
-        this.obj_dict[name] = obj;
+            this.obj_dict[name] = obj;
+        }
     }
 
     this.toString = function () {

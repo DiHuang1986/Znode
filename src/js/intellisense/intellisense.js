@@ -3,10 +3,10 @@ function create_usage_dictionary(line_no, obj, type) {
 }
 
 ////////////////////////////////////// Helper Functions ////////////////////////////////////////
-function parse_expr(expr) {
+function parse_expr(expr, keep_this) {
     var str = "";
     while (expr.child != null) {
-        if (expr.name != "this") {
+        if (keep_this || expr.name != "this") {
             str += expr.name + ".";
         }
         expr = expr.child;
@@ -25,6 +25,13 @@ function walk_tree(ast) {
             assign_expr.token = this.parent;
             assign_expr.type = "assign_expr";
             assign_expr.left_expr = walk_tree(ast[2]);
+
+            // Handle a special case in which the rhs could be a function. In this case the function name doesn't show
+            // up in the ast and hence we need to manually feed it.
+            if (ast[3][0]["name"] == "function" && ast[3][1] == null) {
+                ast[3][1] = parse_expr(assign_expr.left_expr, true);
+            }
+
             assign_expr.right_expr = walk_tree(ast[3]);
 
             assign_expr.name = assign_expr.left_expr.name;
@@ -78,7 +85,12 @@ function walk_tree(ast) {
 
         "function": function () {
             var func = factory(ast[1], "function", type_function, this.parent, null, ["function", ast[1], ["toplevel", [ast]], ast[2]]);
-            // var func = new type_function("function", ast[1], ["toplevel", [ast]], ast[2]);
+            
+            // This is a hack. Not the right way but we don't have time to do anything more.
+            // We don't need to add to global intellisense root if it's a local function. We are 
+            // going to do it inside the defun parse call itself again with the qualified name.
+            delete GlobalIntellisenseRoot.obj_dict[ast[1]];
+
             func.token = this.parent;
             return func;
         },
@@ -144,6 +156,20 @@ function walk_tree(ast) {
         "switch": function () { },
 
         "case": function () { },
+
+        "sub": function () {
+            // Array subscript 
+            var array_obj = walk_tree(ast[1]);
+            var array_subscript = walk_tree(ast[2]);
+            var sub_expr = new type_array_subscript();
+            sub_expr.array = array_obj;
+            sub_expr.subscript = array_subscript;
+            
+            sub_expr.name = array_obj.name;
+            sub_expr.token = this.parent;
+            sub_expr.type = "array_subscript";
+            return sub_expr;
+        },
     }
     
     this.parent = ast[0];
@@ -158,7 +184,7 @@ function walk_tree(ast) {
 
     // Debug Code... If we encounter something for which we haven't speculated yet. Lets see it
     var myImplementedList = ["binary", "num", "string", "return", "defun", "call", "function", "new", "name", "dot", "stat", "var", "assign", 
-                             "if", "do", "while", "switch", "case"];
+                             "if", "do", "while", "switch", "case", "sub"];
 
     if (myImplementedList.indexOf(token_str) == -1)
         alert("Unimplemented token: " + token_str);
