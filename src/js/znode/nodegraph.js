@@ -1,9 +1,26 @@
+function get_node_from_id(graph_to_use, id_string) {
+    var clicked_element = id_string.split("_");
+    var id = parseInt(clicked_element[clicked_element.length - 1]);
+    var node = graph_to_use.getNode(id);    
+    return node;
+}
+
 var defaultNodeWidth = 200;
 var defaultNodeHeight = 100;
+var win = $(window);
 
-function NodeGraph() {
-    var win = $(window);
-    var canvas = $("#canvas");
+var topHeight = 0;
+var main_canvas_width = 0;
+var main_canvas_height = 0;
+
+function initialize() {
+    topHeight = $("#top_toolbar").height();
+    main_canvas_width = win.width();
+    main_canvas_height = win.height() - topHeight;
+}
+
+function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
+    var canvas = $("#" + canvas_id);
     var overlay = $("#overlay");
     var currentNode;
     var currentConnection = {};
@@ -20,20 +37,66 @@ function NodeGraph() {
     var hitConnect;
     var key = {};
     var SHIFT = 16;
-    var topHeight = $("#top_toolbar").height();
+    var canvas_name = canvasName;
 
-    var paper = new Raphael("canvas", "100", "100");
+    var paper = new Raphael(canvas_id, "100", "100");
 
-    function resizePaper() {
-        paper.setSize(win.width(), win.height() - topHeight);
+    function resizePaper(width, height) {
+        paper.setSize(width, height);
+    }
+
+    this.getPaper = function() {
+        return paper;
+    }
+
+    this.getNode = function(id) {
+        if (nodes.hasOwnProperty(id)) {
+            return nodes[id];
+        } else {
+            alert("Graph doesn't have this object: " + id);            
+        }
     }
 
     win.resize(resizePaper);
-    resizePaper();
+    resizePaper(canvas_width, canvas_height);
+
+    function arrowRotate(pointX, pointY, centerX, centerY, angle) {
+        var degree = angle * Math.PI / 180;
+        var newX = Math.cos(degree) * (pointX - centerX) - Math.sin(degree) * (pointY - centerY);
+        var newY = Math.sin(degree) * (pointX - centerX) + Math.cos(degree) * (pointY - centerY);
+        return { x: (newX + centerX), y: (newY + centerY) };
+    }
+
+    function arrow(x1, y1, x2, y2, linkType) {
+        var angle = Math.atan2(x1 - x2, y2 - y1);
+        angle = (angle / (2 * Math.PI)) * 360;
+        var points;
+        if (linkType == "composition") {
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 10), y: (y2 - 7) }, { x: (x2 - 10), y: (y2 + 7) }, { x: x2, y: y2}];
+        }
+        else if (linkType == "inheritance") {
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 20), y: (y2 - 8) }, { x: (x2 - 20), y: (y2 + 8) }, { x: x2, y: y2}];
+        }
+        else {
+            
+            // Inheritance link
+            points = [{ x: x2 - 20, y: y2 }, { x: (x2 - 20), y: (y2 - 8) }, { x: (x2 - 20), y: (y2 + 8) }, { x: x2, y: y2}];
+        }
+
+        var newPoints = [];
+        var center = { x: x2, y: y2 };
+
+        for (var i = 0; i < points.length; i++)
+            newPoints.push(arrowRotate(points[i].x, points[i].y, center.x, center.y, 90 + angle));
+
+        var arrowStr = "M" + x1 + " " + y1 + " L" + newPoints[0].x + " " + newPoints[0].y + " L" + newPoints[1].x + " " + newPoints[1].y + " M" + newPoints[0].x + " " + newPoints[0].y + " L" + newPoints[2].x + " " + newPoints[2].y + " M" + newPoints[3].x + " " + newPoints[3].y + " L" + newPoints[1].x + " " + newPoints[1].y + " M" + newPoints[3].x + " " + newPoints[3].y + " L" + newPoints[2].x + " " + newPoints[2].y;
+        return arrowStr;
+    };
+  
 
     this.getNodes = function () { return nodes; }
 
-    canvas.append("<ul id='menu'><li>Left<\/li><li>Right<\/li><li>Top<\/li><li>Bottom<\/li><\/ul>");
+    // canvas.append("<ul id='menu'><li>Left<\/li><li>Right<\/li><li>Top<\/li><li>Bottom<\/li><\/ul>");
     var menu = $("#menu");
     menu.css({
         "position" : "absolute",
@@ -44,19 +107,7 @@ function NodeGraph() {
         "padding" : 0
     });
     menu.hide();
-
-    canvas.append("<ul id='vsmenu'><li>Global<\/li><li>Functions<\/li><li>Exit<\/li><\/ul>");
-    var vsmenu = $("#vsmenu");
-    vsmenu.css({
-        "position" : "absolute",
-        "left" : 100,
-        "top" : 0,
-        "z-index" : 5000,
-        "border" : "1px solid gray",
-        "padding" : 0
-    });
-    vsmenu.hide();
-    
+        
     canvas.append("<div id='hit' />");
     hitConnect = $("#hit");
     hitConnect.css({
@@ -170,7 +221,7 @@ function NodeGraph() {
         currentNode = node;
     }
 
-    function createConnection(a, conA, b, conB) {
+    function createConnection(a, conA, b, conB, connType) {
         var link = paper.path("M 0 0 L 1 1");
         link.attr({
             "stroke-width" : 2
@@ -180,10 +231,10 @@ function NodeGraph() {
         a.addConnection(link);
         currentConnection = link;
         currentNode = a;
-        saveConnection(b, conB);
+        saveConnection(b, conB, connType);
     }
 
-    function saveConnection(node, dir) {
+    function saveConnection(node, dir, type) {
         if(!currentConnection)
             return;
         if(!currentConnection.parent)
@@ -193,6 +244,7 @@ function NodeGraph() {
         currentConnection.endNode = node;
         currentConnection.startConnection = currentConnection.parent;
         currentConnection.endConnection = node[dir.toLowerCase()];
+        currentConnection.connType = type;
 
         currentConnection.id = connectionId;
         connections[connectionId] = currentConnection;
@@ -397,7 +449,7 @@ function NodeGraph() {
         }
 
         this.PopoverHide = function() {
-            var id = "#node_text_" + this.id;
+            var id = "#" + this.getHtmlIdName("node_text");
             $(id).popover('hide');
         }
 
@@ -416,8 +468,12 @@ function NodeGraph() {
         this.getIntellisenseObj = function() {
             return this.intellisenseObj;
         }
+
+        this.getHtmlIdName = function(name) {
+            return  canvas_name + "_" + name + "_" + this.id;
+        }
         
-        canvas.append("<div class='node shadow'/>");
+        canvas.append("<div id='" + this.getHtmlIdName("node") + "' class='node shadow'/>");
         var n = $(".node").last();
         n.css({
             "position" : "absolute",
@@ -427,21 +483,13 @@ function NodeGraph() {
             "height" : h,
             "border" : "1px solid black",
             "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+            // "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
             "-webkit-border-radius" : "10px"
         });
         n.css("z-index", zindex++);
 
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
             n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
-
-        /* This part fires the menu when selecting text inside a node.  */
-        // n.mouseup(function(){
-        // g_selText = GetSelectedText();
-        // if (g_selText.length != 0){
-            // vsmenu.css({"left":mouseX - 10, "top":mouseY});
-            // vsmenu.show();
-            // }
-        // });
 
         this.content = n;
 
@@ -457,6 +505,7 @@ function NodeGraph() {
         this.y = function() {
             return n.position().top;
         }
+
         var nodeWidth = n.width();
         var nodeHeight = n.height();
 
@@ -476,11 +525,13 @@ function NodeGraph() {
             return "No Source Defined";
         }
 
-        n.append("<div class='bar'><center><b>" + this.getIntellisenseObjName() + "</center></div>");
+        n.append("<div class='bar'></div>");
         var bar = $(".node .bar").last();
         bar.css({
             "border-top-left-radius": "8px",
             "border-top-right-radius": "8px",
+            "top": 0,
+            "left": 0,
             "height" : "20px",
             "background-color" : "black",
             "padding" : "0",
@@ -491,6 +542,14 @@ function NodeGraph() {
             "-webkit-border-top-left-radius" : "8px",
             "-webkit-border-top-right-radius" : "8px"
         });
+
+        var viewButtonsEnabled = false;
+
+//        bar.click(function () {
+//            viewButtonsToggle(!viewButtonsEnabled);
+//            viewButtonsEnabled = !viewButtonsEnabled;
+//        });
+//        
 
         if(!noDelete) {
             n.append("<img class='ex' width=15 height=15 src='img/close.png'><\/img>");
@@ -511,45 +570,316 @@ function NodeGraph() {
                 "background-color" : "black",
                 "z-index" : 100
             });
-            ex.hover(function() {
+            ex.hover(function () {
                 ex.css("color", "black");
-            }, function() {
+            }, function () {
                 ex.css("color", "white");
-            }).click(function() {
+            }).click(function () {
 
-                if(confirm("Are you sure you want to delete this node?")) {
+                if (confirm("Are you sure you want to delete this node?")) {
                     curr.remove();
                 }
             });
         }
-        
-        n.append("<textarea class='txt' id='node_text_" + this.id + "'" + " spellcheck='false' rel='popover' data-content='No Source Currently' data-original-title='Source Code'/>");
-        var txt = $(".node .txt").last();
-        txt.css("position", "absolute");
 
-        txt.css({
-            "width" : nodeWidth - 10,
-            "height" : nodeHeight - bar.height() - 10,
+        if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("inheritance") + "' width=15 height=15 src='img/inheritance.png' rel='tooltip' title='Show Inheritance Diagram'><\/img>");
+            var inheritance = $("#" + this.getHtmlIdName("inheritance"));
+            inheritance.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 5,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            inheritance.tooltip('hide');
+
+            inheritance.click(function (event) {
+                var orig_node = get_node_from_id(graph, event.target.id);
+
+                try {
+                    // Delete the DOM element
+                    $("#secondary_canvas").empty();
+                } catch(e) {
+                    // Do nothing
+                }
+                
+
+                $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                var inheritance_graph = new NodeGraph(secondary_canvas_id, win.width() - 300, win.height() - 250, "secondary_canvas");
+                inheritance_graph.clearAll();
+
+                $("#SecondaryCanvasView").modal('show');
+
+                var startx = 100; var starty = 100;
+                // Get the object
+                var obj = orig_node.getIntellisenseObj();
+                var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                inheritance_graph.add_node_name_mapping(obj, node);
+
+                startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+
+                for (var i = 0; i < obj.super_classes.length; ++i) {
+                    var base_class_name = obj.super_classes[i];
+                    var base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(base_class_name);
+
+                    var base_class_node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, base_class_obj);
+
+                    inheritance_graph.add_node_name_mapping(base_class_obj, base_class_node);
+
+                    startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+                }
+
+                node.updateConnections();
+                inheritance_graph.generateSingleInheritanceConnection(obj, node);
+            });
+        }
+
+        if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("composition") + "' width=15 height=15 src='img/composition.png' rel='tooltip' title='Show which classes compose this'><\/img>");
+            var composition = $("#" + this.getHtmlIdName("composition"));
+            composition.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 25,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            composition.click(function (event) {
+                var orig_node = get_node_from_id(graph, event.target.id);
+
+                try {
+                    // Delete the DOM element
+                    $("#secondary_canvas").empty();
+                } catch(e) {
+                    // Do nothing
+                }
+
+                $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                var composition_graph = new NodeGraph(secondary_canvas_id, win.width() - 300, win.height() - 250, "secondary_canvas");
+                composition_graph.clearAll();
+
+
+                var startx = 100; var starty = 100;
+                // Get the object
+                var obj = orig_node.getIntellisenseObj();
+                var node = composition_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                composition_graph.add_node_name_mapping(obj, node);
+
+                startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+
+                for (var key in  obj.classes_where_composed) {
+                    var composition_base_class_name = key;
+                    var composition_base_class_obj = GlobalIntellisenseRoot.get_from_global_dict(composition_base_class_name);
+
+                    var composition_base_class_node = composition_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, composition_base_class_obj);
+
+                    composition_graph.add_node_name_mapping(composition_base_class_obj, composition_base_class_node);
+
+                    startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
+                }
+
+                composition_graph.generateSingleCompositionConnection(obj, node);
+                node.updateConnections();
+                $("#SecondaryCanvasView").modal('show');
+            });
+
+            composition.tooltip('hide');
+        }
+
+        if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("usage") + "' width=15 height=15 src='img/usage.png' rel='tooltip' title='Show where this is used'><\/img>");
+            var usage = $("#" + this.getHtmlIdName("usage"));
+            usage.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 45,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            usage.tooltip('hide');
+
+            usage.click( function(event) {
+                var orig_node = get_node_from_id(graph, event.target.id);            
+                var obj = orig_node.getIntellisenseObj();
+                $("#usageViewTableBody").empty();
+
+                var html = "";
+
+                var usage_list = obj.get_usage();
+
+                for (var key in usage_list) {
+                    html = html + "<tr><td><center>" + key + "</center></td>";
+                    
+                    var type = usage_list[key][0];
+                    html = html + "<td><center>" + type + "</center></td>";
+
+                    var usage_obj = usage_list[key][1];
+                    var code_str = usage_obj.get_code_string();
+                    html = html + "<td><center>" + code_str + "</center></td><tr>";
+                }
+
+                $("#usageViewTableBody").append(html);                
+                $("#UsageViewPopup").modal('show');
+            });
+        }
+
+       if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("source") + "' width=15 height=15 src='img/source.png' rel='tooltip' title='Source View'><\/img>");
+            var source = $("#" + this.getHtmlIdName("source"));
+            source.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 65,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            source.tooltip('hide');
+        }
+
+        source.click( function(event) {
+            var orig_node = get_node_from_id(graph, event.target.id);            
+            var src = orig_node.getSourceCode();
+            $("#source_body").empty();
+            $("#source_body").append('<pre class="source_code"></pre>');
+            $(".source_code").append(src);
+            $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
+            $("#SourceViewPopup").modal('show');
+        });
+
+
+//        function viewButtonsToggle(show) {
+//            if (show == false) {
+//                inheritance.css({ 'visibility': 'hidden' });
+//                composition.css({ 'visibility': 'hidden' });
+//                usage.css({ 'visibility': 'hidden' });
+//                source.css({ 'visibility' : 'hidden' });
+//            } else {
+//                inheritance.css({ 'visibility': 'visible' });
+//                composition.css({ 'visibility': 'visible' });
+//                usage.css({ 'visibility': 'visible' });
+//                source.css({ 'visibility' : 'visible' });
+//            }
+//        }
+
+        // var total_height = nodeHeight - bar.height() - 8;
+        var total_height = n.height() - bar.height();
+        var text_height = total_height;
+
+        // Add the 1st Textbox
+        n.append("<div class='txt' id='" + this.getHtmlIdName("node_text") + "'" + " spellcheck='false' rel='popover' data-content='No Data Members' data-original-title='Data Members'><center><p id='" + this.getHtmlIdName("node_text_p") + "' style='padding-top:20px; font-size: 18px; font-family: sans-serif; font-weight:bold'></p></center></div>");
+        var txt = $(".node .txt").last();
+        var node_text_p = $("#" + this.getHtmlIdName("node_text_p"));
+        var node_text;
+        var node_text_name = this.getHtmlIdName("text_area");
+
+        node_text_p.click(function() {
+            txt.empty();
+            txt.append("<textarea id='" + node_text_name + "'></textarea>");
+            node_text = $("#" + node_text_name);
+            node_text.css({
+            "width" : nodeWidth - 16,
+            "height" : text_height - 17,
             "resize" : "auto",
             "overflow" : "auto",
             "font-size" : "12px",
-            "font-family" : "sans-serif",
+            "font-family": "sans-serif",
             "border": "none",
-            "color": "white",
+            "color": "black",
+            "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
+             // "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+            "z-index" : 4,
+            });
+        });
+
+        txt.css("position", "absolute");
+
+        txt.css({
+            // "width": nodeWidth - 8,
+            "width" : nodeWidth,
+            "height" : text_height,
+            "readonly" : "readonly",
+            "resize" : "none",
+            "overflow" : "auto",
+            "font-size" : "25px",
+            "font-family": "sans-serif",
+            "font-weight": "bold",
+            "border": "none",
+            "color": "black",
+            "text-align" : "center",
+            // "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
             "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
-            "z-index" : 4
+            "z-index" : 4,
+            "-webkit-border-radius" : "10px",
         });
 
         if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
-            txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
+            txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))", });
 
         this.txt = txt;
         var src_code = this.getSourceCode();
-        $("#node_text_" + this.id).attr('data-original-title', this.getIntellisenseObjName());
-        $("#node_text_" + this.id).attr('data-content', src_code);
+        $("#" + this.getHtmlIdName("node_text_p")).text(this.getIntellisenseObjName());
+        $("#" + this.getHtmlIdName("node_text")).attr('data-original-title', this.getIntellisenseObjName());
+
+        
+        this.populateClassMembers = function() {
+            var intellisense_obj = this.getIntellisenseObj();
+            if (intellisense_obj != null && intellisense_obj == "defun") {
+            var class_members = this.getIntellisenseObj().get_class_members("all");
+            var str = class_members_to_string(class_members);
+            // Now populate the members of the class into the data content
+            $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
+            }
+        }
+
+        this.populateClassMembers();
 
 
-
+        // Add the resizer
         n.append("<div class='resizer' />");
         var resizer = $(".node .resizer").last();
 
@@ -564,7 +894,7 @@ function NodeGraph() {
             "font-size" : "1px",
             "border" : "1px solid gray",
             "cursor" : "pointer",
-            "-webkit-border-radius" : "3px"
+            "-webkit-border-radius" : "2px"
         });
 
         n.append("<div class='left'>");
@@ -642,8 +972,9 @@ function NodeGraph() {
                 if(!c.removed) {
                     var nodeA = c.startNode.connectionPos(c.startConnection);
                     var nodeB = c.endNode.connectionPos(c.endConnection);
-                    c.attr("path", "M " + nodeA.x + " " + nodeA.y + " L " + nodeB.x + " " + nodeB.y);
-
+                    var updatePath = arrow(nodeA.x, nodeA.y, nodeB.x, nodeB.y, c.connType);
+                    // c.attr("path", "M " + nodeA.x + " " + nodeA.y + " L " + nodeB.x + " " + nodeB.y);
+                    c.attr("path", updatePath);
                 }
             }
         }
@@ -653,7 +984,7 @@ function NodeGraph() {
         function addLink(e) {
             currentNode = curr;
             e.preventDefault();
-            var link = paper.path("M 0 0 L 1 1");
+            var link = this.getPaper().path("M 0 0 L 1 1");
             link.attr({
                 "stroke-width" : 2
             });
@@ -669,8 +1000,9 @@ function NodeGraph() {
 
             var id = setInterval(function () {
                 var my = mouseY - 17;
-                link.attr("path", "M " + x + " " + y + " L " + mouseX + " " + my);
-
+                // link.attr("path", "M " + x + " " + y + " L " + mouseX + " " + my);
+                var updatePath = arrow(x, y, mouseX, mouseY, type, "inheritance");
+                link.attr("path", updatePath);
                 pathEnd.x = mouseX;
                 pathEnd.y = mouseY;
             }, 30);
@@ -694,26 +1026,31 @@ function NodeGraph() {
             delete nodes[this.id];
         }
 
-        resizer.mousedown(function(e) {
+        resizer.mousedown(function (e) {
             currentNode = curr;
             e.preventDefault();
             startDrag(resizer, {
-                left : 20,
-                top : 20,
-                right : 500,
-                bottom : 500
-            }, function() {
+                left: 20,
+                top: 20,
+                right: 500,
+                bottom: 500
+            }, function () {
                 var loc = resizer.position();
                 var x = loc.left;
                 var y = loc.top;
+                // var total_height = n.height() - bar.height() - 8;
+                var total_height = n.height() - bar.height();
+                var text_height = total_height;
+
                 n.css({
-                    "width" : x + resizer.width() + 1,
-                    "height" : y + resizer.height() + 1
+                    "width": x + resizer.width() + 1,
+                    "height": y + resizer.height() + 1
                 });
 
                 txt.css({
-                    "width" : n.width() - 5,
-                    "height" : n.height() - bar.height() - 5
+                    // "width": n.width() - 8,
+                    "width" : n.width(),
+                    "height": text_height,
                 });
 
                 positionLeft();
@@ -739,8 +1076,9 @@ function NodeGraph() {
         n.mouseenter(function() {
             n.css("z-index", zindex++);
         });
-    }
+    } // End of Node Class
 
+    // ------------------------------------------------ NodeGraph Members ---------------------------------------------------
     function hitTest(a, b) {
         var aPos = a.position();
         var bPos = b.position();
@@ -829,13 +1167,18 @@ function NodeGraph() {
                 startx = 50;
                 starty += defaultNodeHeight + 20;
             }
+
+            // Get the data members for this class
+            var class_members = obj.get_class_members("all");
+            var str = class_members_to_string(class_members);
+
+            node.txt[0].value = str;
+
             node.txt[0].focus();
             currentNode = node;
         }
 
-        // This is how we create an automatic connection between 2 nodes.
-        // createConnection(nodes[0], "right", nodes[1], "left");
-        this.generateConnections();
+        this.generateInheritanceConnections();
 
         // Now load the global variables 
         for (var key in intellisense.global_vars) {
@@ -853,23 +1196,38 @@ function NodeGraph() {
             currentNode = node;
         }
     }
+
+    this.generateSingleCompositionConnection = function(obj, node) {
+        // Now find all its parents and connect them
+        for (var key in obj.classes_where_composed) {
+            var composition_class_name = key;
+            var composition_node = this.getNodeFromName(composition_class_name);
+
+            var connectionPts = this.getConnectionPoints(node, composition_node);
+            createConnection(node, connectionPts[0], composition_node, connectionPts[1], "composition");
+        }
+    }
+
+    this.generateSingleInheritanceConnection = function (obj, node) {
+        // Now find all its parents and connect them
+        for (var i = 0; i < obj.super_classes.length; ++i) {
+            var parent_class_name = obj.super_classes[i];
+            var parent_node = this.getNodeFromName(parent_class_name);
+
+            var connectionPts = this.getConnectionPoints(node, parent_node);
+            createConnection(node, connectionPts[0], parent_node, connectionPts[1], "inheritance");
+        }
+    }
     
     // Generate Connections between the nodes based on the inheritance data
-    this.generateConnections = function () {
+    this.generateInheritanceConnections = function () {
         var intellisense = GlobalIntellisenseRoot;
         // For all global classes find it's parent
         for (var key in intellisense.defun) {
             var obj = intellisense.defun[key];
             var node = this.getNodeFromName(obj.name);
 
-            // Now find all its parents and connect them
-            for (var i = 0; i < obj.super_classes.length; ++i) {
-                var parent_class_name = obj.super_classes[i];
-                var parent_node = this.getNodeFromName(parent_class_name);
-
-                var connectionPts = this.getConnectionPoints(node, parent_node);
-                createConnection(node, connectionPts[0], parent_node, connectionPts[1]);
-            }
+            this.generateSingleInheritanceConnection(obj, node);
         }
     }
 
@@ -910,6 +1268,10 @@ function NodeGraph() {
         }
 
         return connectionPts;
+    }
+
+    this.add_node_name_mapping = function(obj, node) {
+        node_name_id_mapping[obj.name] = node.getID();
     }
     
     //function defaultNode() {
@@ -968,6 +1330,7 @@ function NodeGraph() {
         json += ']}';
         return json;
     }
+
     function addSlashes(str) {
         str = str.replace(/\\/g, '\\\\');
         str = str.replace(/\'/g, '\\\'');

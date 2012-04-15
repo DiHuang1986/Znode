@@ -1,13 +1,16 @@
 var graph;
+var main_canvas_id = "main_canvas";
+var secondary_canvas_id = "secondary_canvas";
 
 $(function () {
-
-    graph = new NodeGraph();
+    initialize();
+    graph = new NodeGraph(main_canvas_id, main_canvas_width, main_canvas_height, "main_canvas");
     // composition view
 
     // consider moving to NodeGraph
-    $("#canvas").mousedown(function (e) {
-        if ((openWin.css("display") == "none") && (openComp.css("display") == "none")  && (openFunc.css("display") == "none")) {
+
+    $("#" + main_canvas_id).mousedown(function (e) {
+        if ((openWin.css("display") == "none") && (openComp.css("display") == "none")) {
             var children = $(e.target).children();
             if (children.length > 0) {
                 var type = children[0].tagName;
@@ -144,13 +147,12 @@ $(function () {
         $(".source_code").append(src);
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');
-
     });
 
     $("#parse_button").click(function () {
         // We should now take the code and parse it.
         var code = $("#textarea_code").val();
-
+        graph.clearAll();
         parseInit(code, "#PasteCodePopup");
     });
 

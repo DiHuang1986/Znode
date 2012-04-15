@@ -23,8 +23,16 @@ function generate_class_hierarchy (result, class_obj) {
 function generate_intellisense(code) {
     // 'use strict';    
     var str_results = "";
-    
+
     var ast = parse(code, false, true);
+
+    // Now since we have all the classes go through them to see if we have source code for all of them and if they are present
+    // then generate the data members.
+//    for (var key in GlobalIntellisenseRoot.defun) {
+//        var dependency_src_code = "";
+//        var obj = GlobalIntellisenseRoot.defun[key];
+//        obj.generate_data_members();
+//    }
     
     return GlobalIntellisenseRoot;
 }
