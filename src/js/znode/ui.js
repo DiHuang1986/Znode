@@ -8,6 +8,7 @@ $(function () {
     // composition view
 
     // consider moving to NodeGraph
+
     $("#" + main_canvas_id).mousedown(function (e) {
         if ((openWin.css("display") == "none") && (openComp.css("display") == "none")) {
             var children = $(e.target).children();
@@ -25,6 +26,9 @@ $(function () {
 
     var openComp = $('#openComp');
     openComp.hide();
+    
+    var openFunc = $('#openFunc');
+    openFunc.hide();
 
     $(".btn_").mouseenter(function () {
         $(this).animate({
@@ -61,9 +65,24 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
+        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
+            classCount++;
         }
+        if (classCount == 0) classNames.append("<div class='className'>" + "No classes to display" + "<\/div>");
+    });
+    
+    $('#function_view').click(function () {
+        var classNames = $('#classNames');
+        classNames.html(''); // clear the top element
+        openComp.fadeIn();
+        // Loop through all the global classes found.
+        var classCount = 0;
+        for (var key in GlobalIntellisenseRoot.defun) {
+            classNames.append("<div class='classNameFun'>" + key + "<\/div>");
+        }
+        if (classCount == 0) classNames.append("<div class='classNameFun'>" + "No classes to display" + "<\/div>");
     });
 
     $("#save").click(saveFile);
@@ -84,9 +103,10 @@ $(function () {
     }
 
 
-    $("#canvas").mousedown(function () {
+    $("#" + main_canvas_id).mousedown(function () {
         openWin.fadeOut();
         openComp.fadeOut();
+        openFunc.fadeOut();
     });
 
     $("#open_json").click(function () {
@@ -149,7 +169,7 @@ $(function () {
 
 
     var nameMessage = $('.search-query').attr('placeholder');
-    var filename = $("#filename").val(nameMessage);
+    var filename = $(".search-query").val(nameMessage);
 
     filename.focus(function () {
         if ($(this).val() == nameMessage) {
@@ -184,40 +204,71 @@ $(function () {
             "background-color": "white"
         });
     });
+    
+    $('.classNameFun').live('click', function(e) {
+        // open the function call window
+        var functionCalls = $('#functionCalls');
+        functionCalls.html(''); // clear the top element
+        openFunc.fadeIn();
+        // Display all the function calls.
+        functionCalls.append("<div class='functionsList'>" + "test" + "<\/div>")
+        
+        
+    }).live('mouseover', function () {
+        $(this).css({
+            "background-color": "#ededed"
+        });
+    }).live('mouseout', function () {
+        $(this).css({
+            "background-color": "white"
+        });
+    });
+    
+    
+    // an even handler for the function calls list.
+    $('.functionsList').live('click', function() {
+        alert('clicked');
+    }).live('mouseover', function () {
+        $(this).css({
+            "background-color": "#ededed"
+        });
+    }).live('mouseout', function () {
+        $(this).css({
+            "background-color": "white"
+        });
+    });
+    
 
     $('.className').live('click', function (e) {
         var class_name = $(e.target).html();
         var obj = GlobalIntellisenseRoot.get_single_defun(class_name);
+        var intellisense = GlobalIntellisenseRoot;
+        var arr = [];
+        var startx = 500;
+        var starty = 100;
+        var i = 0;
+        graph.clearAll();
+        for (var key in intellisense.defun) {
+            arr.push(intellisense.defun[key]);
+        }
         // This is where we need to check if the selected class exists in other classes by composition
         // and then draw all those classes<nodes> to the compDiv element. If no composition found, alert the user
 
         // draw the composition view here
-        var compDiv = $('#composition_data');
-        // ========================= This can be deleted ======
-        compDiv.html('');
-        var zindex = 1;
-        var x = 20;
+        graph.generateSingleNode(class_name, startx, starty, arr[i]);
+        startx = 200;
+        starty = defaultNodeHeight + 250;
+        i++;
         var composition_classes = obj.get_composition_classes();
         for (var key in composition_classes) {
-            compDiv.append("<div class='node_test shadow'><center>" + key + "</center><\/div>");
-            var n = $(".node_test").last();
-            n.css({
-                "position": "absolute",
-                "left": x,
-                "top": 90,
-                "width": 100,
-                "height": 100,
-                "border": "1px solid black",
-                "background": "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
-                "-webkit-border-radius": "10px"
-            });
-            n.css("z-index", zindex++);
-            x += 120;
+            graph.generateSingleNode(key, startx, starty, arr[i]);
+            startx += defaultNodeWidth + 20;
+            if (startx > $(window).width()) {
+                startx = 50;
+                starty += defaultNodeHeight + 20;
+            }
+            i++;
         }
-        // ===================== end of junk code =======
-
-        // call the modal
-        $('#OpenCompView').modal('show');
         $('#openComp').fadeOut();
     }).live('mouseover', function () {
         $(this).css({

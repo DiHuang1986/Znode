@@ -1135,6 +1135,14 @@ while(curDate-date < millis);
             var new_node = this.addNode(win.width() / 2, win.height() / 2, defaultNodeWidth, defaultNodeHeight, null);
         }
     }
+    
+    this.generateSingleNode = function (name, startx, starty, obj) {
+        var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+        node_name_id_mapping[name] = node.getID();
+        
+        node.txt[0].focus();
+        currentNode = node;
+    }
 
     this.generateNodes = function () {
 

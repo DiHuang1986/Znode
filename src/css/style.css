@@ -204,7 +204,44 @@ body {
     font-size: 14px;
 }
 
+.classNameFun {
+    font-size: 12px;
+    margin: 0;
+    cursor: pointer;
+    background-color: white;
+    color: #333;
+    font-family: Georgia, serif;
+    border-bottom: 1px solid #cccccc;
+    padding: 5px 10px 5px 10px;
+    font-size: 14px;
+}
+
+.functionsList {
+    font-size: 12px;
+    margin: 0;
+    cursor: pointer;
+    background-color: white;
+    color: #333;
+    font-family: Georgia, serif;
+    border-bottom: 1px solid #cccccc;
+    padding: 5px 10px 5px 10px;
+    font-size: 14px;
+}
+
 #openComp {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    width: 250px;
+    height: 510px;
+    background-color: #333;
+    z-index: 6000;
+    display: none;
+    color: white;
+    font-size: 16px;
+}
+
+#openFunc {
     position: absolute;
     top: 60px;
     left: 20px;
@@ -225,6 +262,16 @@ body {
     height: 450px;
     overflow: auto;
 }
+
+#functionCalls {
+    position: relative;
+    margin: 10px;
+    background-color: white;
+    width: 230px;
+    height: 450px;
+    overflow: auto;
+}
+
 #fileTitle {
     font-family: Georgia, serif;
     font-style: italic;
