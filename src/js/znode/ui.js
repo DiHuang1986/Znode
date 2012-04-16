@@ -65,9 +65,12 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
+        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
+            classCount++;
         }
+        if (classCount == 0) classNames.append("<div class='className'>" + "No classes to display" + "<\/div>");
     });
     
     $('#function_view').click(function () {
@@ -75,9 +78,11 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
+        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='classNameFun'>" + key + "<\/div>");
         }
+        if (classCount == 0) classNames.append("<div class='classNameFun'>" + "No classes to display" + "<\/div>");
     });
 
     $("#save").click(saveFile);
@@ -98,7 +103,7 @@ $(function () {
     }
 
 
-    $("#canvas").mousedown(function () {
+    $("#" + main_canvas_id).mousedown(function () {
         openWin.fadeOut();
         openComp.fadeOut();
         openFunc.fadeOut();
@@ -164,7 +169,7 @@ $(function () {
 
 
     var nameMessage = $('.search-query').attr('placeholder');
-    var filename = $("#filename").val(nameMessage);
+    var filename = $(".search-query").val(nameMessage);
 
     filename.focus(function () {
         if ($(this).val() == nameMessage) {
@@ -205,7 +210,9 @@ $(function () {
         var functionCalls = $('#functionCalls');
         functionCalls.html(''); // clear the top element
         openFunc.fadeIn();
-        // Loop through all the global classes found.
+        // Display all the function calls.
+        functionCalls.append("<div class='functionsList'>" + "test" + "<\/div>")
+        
         
     }).live('mouseover', function () {
         $(this).css({
@@ -216,6 +223,21 @@ $(function () {
             "background-color": "white"
         });
     });
+    
+    
+    // an even handler for the function calls list.
+    $('.functionsList').live('click', function() {
+        alert('clicked');
+    }).live('mouseover', function () {
+        $(this).css({
+            "background-color": "#ededed"
+        });
+    }).live('mouseout', function () {
+        $(this).css({
+            "background-color": "white"
+        });
+    });
+    
 
     $('.className').live('click', function (e) {
         var class_name = $(e.target).html();

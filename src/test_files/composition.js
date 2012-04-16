@@ -5,6 +5,8 @@ function wall()
   this.brick2 = new brick();
   this.brick3 = new brick();
   
+  brick1.brickFunction();
+  
   this.brick_no = 5;
   this.brick_color = "brown";
 

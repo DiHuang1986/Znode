@@ -216,6 +216,18 @@ body {
     font-size: 14px;
 }
 
+.functionsList {
+    font-size: 12px;
+    margin: 0;
+    cursor: pointer;
+    background-color: white;
+    color: #333;
+    font-family: Georgia, serif;
+    border-bottom: 1px solid #cccccc;
+    padding: 5px 10px 5px 10px;
+    font-size: 14px;
+}
+
 #openComp {
     position: absolute;
     top: 60px;
