@@ -21,8 +21,8 @@ function serialize_binary_expr(expr, return_array) {
 // Add the type too for usage.
 function add_single_object(single_obj, type, keyword_to_match, ast, token) {
     try {
-        if (single_obj.type == keyword_to_match) {
-            var global_obj = factory(single_obj.name, single_obj.type, type_object, single_obj.token, null, []);
+        if (single_obj.type == keyword_to_match && single_obj.name != "this") {
+            var global_obj = factory(single_obj.name, type, type_object, single_obj.token, null, []);
 
             var usage_obj = create_usage_object(single_obj.name, ast, single_obj.token.start.line);
             global_obj.add_usage(usage_obj, type);
@@ -513,6 +513,7 @@ function parse_defun(ast) {
 
     // Indicate that a proper definition has been found for this.
     GlobalIntellisenseRoot.add_distinct_defun_definition_found(defun_func.name);
+
     return defun_func;
 }
 
@@ -629,7 +630,7 @@ function parse_if(ast) {
 }
 
 // Definition list could be null
-function populate_function_calls(call_expr, definition_list) {
+function populate_function_calls(call_expr) {
     // Find whether a variable has been defined which composes the class
     // from where we are trying to call this function.
     var defunObj;
@@ -643,11 +644,11 @@ function populate_function_calls(call_expr, definition_list) {
     if (called_obj.child != null) {
         parent = called_obj.name;
         child = called_obj.child.name;
-        if (definition_list.hasOwnProperty(parent)) {
-            mapping_name = definition_list[parent].get_mapping();
+        if (GlobalIntellisenseRoot.scratch_class_mapping.hasOwnProperty(parent)) {
+            mapping_name = GlobalIntellisenseRoot.scratch_class_mapping[parent];
         }
         else if (GlobalIntellisenseRoot.is_variable_class_mapping_defined(parent)) {
-            mapping_name = GlobalIntellisenseRoot.get_variable_class_mapping(parent).get_mapping();
+            mapping_name = GlobalIntellisenseRoot.get_variable_class_mapping(parent);
         }
     }    
     else {
@@ -668,7 +669,11 @@ function populate_function_calls(call_expr, definition_list) {
         defunObj.add_usage(usage, "Function Call");
     else {
         // This is an internal function of a class. So add it appropriately.
-        var internal_func_obj = defunObj.class_members[mapping_name + "." + child][0];
-        internal_func_obj.add_usage("Function Call", usage);
+        var internal_func_name = mapping_name + "." + child;
+
+        if (defunObj.class_members.hasOwnProperty(internal_func_name)) {
+            var internal_func_obj = GlobalIntellisenseRoot.get_from_global_dict(internal_func_name);
+            internal_func_obj.add_usage("Function Call", usage);
+        }
     }
 }

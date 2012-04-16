@@ -137,10 +137,7 @@ function type_function() {
     
     this.add_class_member = function(class_obj) {
         if (!this.is_class_member_present(class_obj.name)) {
-            this.class_members[class_obj.name] = [class_obj];
-        }
-        else {
-            this.class_members[class_obj.name].push(class_obj);
+            this.class_members[class_obj.name] = class_obj;
         }
     }
 
@@ -190,21 +187,6 @@ function type_function() {
         return this.classes_this_composes;
     }
 
-    this.is_variable_class_mapping_defined = function (name) {
-        return this.variable_class_mapping.hasOwnProperty(name);
-    }
-
-    this.add_variable_class_mapping = function (var_name, class_name) {
-        if (this.variable_class_mapping.hasOwnProperty(var_name)) {
-            var mapping_obj = this.variable_class_mapping[var_name];
-            mapping_obj.add_mapping(class_name);
-        }
-        else {
-            this.variable_class_mapping[var_name] = new type_variable_class_mapping();
-            this.variable_class_mapping[var_name].add_mapping(class_name);
-        }
-    }
-
     this.walk_function = function () {
         // Walk the ast for the function alone to generate the dependency graph
         var code_ast = this.ast[1][0][3];
@@ -241,7 +223,7 @@ function type_function() {
 
                             class_composed.add_classes_where_composed(this.name, this);
                             this.add_dependency(right_expr.name);
-                            this.add_variable_class_mapping(left_expr_name, right_expr_name);
+                            GlobalIntellisenseRoot.scratch_class_mapping[left_expr_name] = right_expr_name;
                         }
 
                         var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
@@ -286,7 +268,13 @@ function type_function() {
                         break;
 
                     case "call":
-                        populate_function_calls(expr, this.variable_class_mapping);
+                        if (expr.name == "this") {
+                            // We are going to handle this locally
+                            var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+                            func_obj.add_usage("Function Call", expr);
+                        } else {
+                            populate_function_calls(expr);
+                        }
                         break;
 
                     case "for-in":
@@ -300,8 +288,12 @@ function type_function() {
 
                         for (var kcounter = 0; kcounter < block.length; ++kcounter) {
                             var block_expr = block[kcounter];
-                            if (block_expr.type == "call")
-                                populate_function_calls(block_expr, this.variable_class_mapping);
+                            if (block_expr.type == "call") {
+                                var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
+                                func_obj.add_usage("Function Call", block_expr);
+                            } else {
+                                populate_function_calls(block_expr);
+                            }
                         }
 
                         break
@@ -422,19 +414,6 @@ function type_ignore() {
     type_object.call(this);
 }
 
-function type_variable_class_mapping() {
-    type_object.call(this);
-    this.var_name = "";
-    this.class_mapping = "";
-
-    this.add_mapping = function(class_name) {
-        this.class_mapping = class_name;
-    }
-
-    this.get_mapping = function () {
-        return this.class_mapping;
-    }
-}
 
 type_expression.prototype      = new type_object;
 assign_expression.prototype    = new type_object;
@@ -447,8 +426,6 @@ type_block.prototype           = new type_object;
 type_try_catch.prototype       = new type_object;
 type_if_expr.prototype         = new type_object;
 type_function_call.prototype = new type_object;
-type_variable_class_mapping.prototype = new type_object;
-
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
@@ -513,6 +490,8 @@ function global_node() {
     this.distinct_defun_found = {};
     this.variable_class_mapping = {};               // For global variables holding composition.
 
+    this.scratch_class_mapping = {};                // Used by internal functions
+
     this._add_global_var = function (global_var_name, global_var_obj) {
         this.global_vars[global_var_name] = global_var_obj;
     }
@@ -562,14 +541,7 @@ function global_node() {
     }
 
     this.add_variable_class_mapping = function (var_name, class_name) {
-        if (this.variable_class_mapping.hasOwnProperty(var_name)) {
-            var mapping_obj = this.variable_class_mapping[var_name];
-            mapping_obj.add_mapping(class_name);
-        }
-        else {
-            this.variable_class_mapping[var_name] = new type_variable_class_mapping();
-            this.variable_class_mapping[var_name].add_mapping(class_name);
-        }
+        this.variable_class_mapping[var_name] = class_name;
     }
 
     this.get_single_defun = function (name) {

@@ -780,6 +780,8 @@ function parse($TEXT, exigent_mode, embed_tokens) {
 
                 switch (ast[0].name) {
                     case "defun":
+                        // Clear the scratch class mapping
+                        GlobalIntellisenseRoot.scratch_class_mapping = {};
                         parse_defun(ast);
                         this.entered_defun_stack.pop();
                         break;
