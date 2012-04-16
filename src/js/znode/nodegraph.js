@@ -659,7 +659,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#SourceViewPopup").modal('show');
         });
 
-        if (this.intellisenseObj.type != "global_var") {
+        if (this.intellisenseObj != null && this.intellisenseObj.type != "global_var") {
             if (!noDelete) {
                 n.append("<img id='" + this.getHtmlIdName("inheritance") + "' width=15 height=15 src='img/inheritance.png' rel='tooltip' title='Show Inheritance Diagram'><\/img>");
                 var inheritance = $("#" + this.getHtmlIdName("inheritance"));
