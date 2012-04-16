@@ -13,4 +13,14 @@ function myFunc() {
 function testFunc() {
     var mf = new myFunc();
     mf.func1();
+
+    if (i == 4) {
+        mf.func1();
+    }
+
+    this.myTest = function() {
+        mf.func1();
+    }
+
+    this.myTest();
 }

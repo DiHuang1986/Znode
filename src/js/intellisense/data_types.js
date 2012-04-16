@@ -290,6 +290,20 @@ function type_function() {
                         break;
 
                     case "for-in":
+                    case "for_loop":
+                    case "while_loop":
+                    case "switch_case":
+                    case "try_catch":
+                    case "if_expr":
+                    case "function":
+                        var block = expr.block;
+
+                        for (var kcounter = 0; kcounter < block.length; ++kcounter) {
+                            var block_expr = block[kcounter];
+                            if (block_expr.type == "call")
+                                populate_function_calls(block_expr, this.variable_class_mapping);
+                        }
+
                         break
 
                     case "sub":
