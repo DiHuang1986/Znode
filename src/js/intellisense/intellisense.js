@@ -1,6 +1,40 @@
-function create_usage_dictionary(line_no, obj, type) {
+// Look at the object and create global vars.
+function create_global_vars(obj) {
+    // Now loop through the block variable of all the objects and create globals
+    if (Introspect.typeOf(obj) == "object") {
+        // First see if we have a variable
+        var global_obj = factory(obj.name, obj.type, type_object, obj.token, null, []);
+        GlobalIntellisenseRoot.add_obj("global_var", global_obj);
+        switch(obj.type) {
+            case "for-in":
+                var name1 = global_obj.loop_var1;
+                var name2 = global_obj.loop_var2;
 
+                var global_obj1 = factory(name1, name1.type, type_object, name1.token, null, []);
+                var global_obj2 = factory(name2, name2.type, type_object, name2.token, null, []);
+                
+                GlobalIntellisenseRoot.add_obj("global_var", global_obj1);
+                GlobalIntellisenseRoot.add_obj("global_var", global_obj2);
+                break;
+
+            case "for_loop":
+                break;
+            
+            case "while_loop":
+                break;
+                
+            case "switch_case":
+                break;
+                
+            case "try_catch":
+                break;      
+        }
+    }
+    else {
+        alert("Invalid object sent to create global variables");
+    }
 }
+
 
 ////////////////////////////////////// Helper Functions ////////////////////////////////////////
 function parse_expr(expr, keep_this) {
@@ -109,7 +143,6 @@ function walk_tree(ast) {
 
         "defun": function () {
             var func = factory(ast[1], "defun", type_function, this.parent, null, ["defun", ast[1], ["toplevel", [ast]], ast[2]]);
-            // var func = new type_function("defun", ast[1], ["toplevel", [ast]], ast[2]);
             func.token = this.parent;
             return func;
         },
@@ -147,13 +180,105 @@ function walk_tree(ast) {
             return binary_expr;
         },
 
+        "unary-prefix": function() {
+            var unary_expr = new type_unary_expr();
+            unary_expr.name = ast[2][1];
+            unary_expr.unary = ast[1];
+            unary_expr.token = this.parent;
+            return unary_expr;
+        },
+
+        "unary-postfix": function() {
+            var unary_expr = new type_unary_expr();
+            unary_expr.name = ast[2][1];
+            unary_expr.unary = ast[1];
+            unary_expr.token = this.parent;
+            return unary_expr;              
+        },
+
+        "for" : function() {
+            var for_expr = new type_for_loop();
+            for_expr.loop_var1 = walk_tree(ast[1]);
+            for_expr.binary_expr = walk_tree(ast[2]);
+            for_expr.increment_decrement = walk_tree(ast[3]);
+            var block = walk_tree(ast[4]);
+
+            for_expr.block = block.lines;
+
+            for_expr.token = this.parent;
+            for_expr.type = "for_loop";
+            return for_expr;
+        },
+
+        "for-in" : function() {
+            var for_expr = new type_for_loop();
+            for_expr.type = "for-in";
+            for_expr.loop_var1 = walk_tree(ast[1]);
+            for_expr.loop_var2 = walk_tree(ast[3]);
+            var block = walk_tree(ast[4]);
+            for_expr.block = block.lines;
+            for_expr.token = this.parent;
+            return for_expr;
+        },
+
+        "block" : function() {
+            var block_expr = new type_block();
+
+            for (var key in ast[1]) {
+                var line_obj = walk_tree(ast[1][key]);
+                block_expr.lines.push(line_obj);
+            }
+
+            return block_expr;
+        },
+
         "if": function () { },
 
-        "do": function () { },
+        "do": function () {
+            var while_expr = new type_while_loop();
+            while_expr.type = "while_loop";
 
-        "while": function () { },
+            while_expr.loop_var = walk_tree(ast[1]);
+            var block_expr = walk_tree(ast[2]);
 
-        "switch": function () { },
+            while_expr.block = block_expr.lines;
+            while_expr.name = while_expr.loop_var.name;
+            while_expr.token = this.parent;
+
+            return while_expr;            
+        },
+
+        "while": function () { 
+            var while_expr = new type_while_loop();
+            while_expr.type = "while_loop";
+            
+            while_expr.loop_var = walk_tree(ast[1]);
+            
+            var block_expr = walk_tree(ast[2]);
+    
+            while_expr.block = block_expr.lines;
+            while_expr.name = while_expr.loop_var.name;
+            while_expr.token = this.token;
+
+            return while_expr; 
+        },
+
+        "switch": function () { 
+            var switch_expr = new type_switch_case();
+            switch_expr.type = "switch_case";
+            switch_expr.switch_var = ast[1][1];
+            switch_expr.name = switch_expr.switch_var;
+            for (var i = 0; i < ast[2].length; ++i) {
+                // ast[2][i][0] -- Case call
+                for (var j = 0; j < ast[2][i][1].length; ++j) {
+                    var case_obj = walk_tree(ast[2][i][1][j]);
+                    switch_expr.block.push(case_obj);
+                }
+            }
+            switch_expr.token = this.parent;
+
+            return switch_expr;
+        },
 
         "case": function () { },
 
@@ -170,6 +295,25 @@ function walk_tree(ast) {
             sub_expr.type = "array_subscript";
             return sub_expr;
         },
+
+        "break" : function() {
+            // Do nothing
+        },
+
+        "try" : function() {
+            var try_expr = new type_try_catch();
+            try_expr.type = "try_catch";
+            
+            for (var j = 1; j < 3; ++j) {
+                for (var i = 0; i < ast[1].length; ++i) {
+                    try_expr.block.push(walk_tree(ast[1][i]));
+                }
+            }
+
+            try_expr.token = this.parent;
+
+            return try_expr;
+        },
     }
     
     this.parent = ast[0];
@@ -183,8 +327,9 @@ function walk_tree(ast) {
     }
 
     // Debug Code... If we encounter something for which we haven't speculated yet. Lets see it
-    var myImplementedList = ["binary", "num", "string", "return", "defun", "call", "function", "new", "name", "dot", "stat", "var", "assign", 
-                             "if", "do", "while", "switch", "case", "sub"];
+    var myImplementedList = ["binary", "num", "string", "return", "defun", "call", "function", "new", "name",
+                             "dot", "stat", "var", "assign", "if", "do", "while", "switch", "case", "sub", 
+                             "unary-prefix", "for", "block", "break", "try", "for-in"];
 
     if (myImplementedList.indexOf(token_str) == -1)
         alert("Unimplemented token: " + token_str);
@@ -212,8 +357,6 @@ function parse_call(ast) {
     var call_obj = walk_tree(ast);
     if (call_obj.name != "this") {
         var usage_obj = create_usage_object(call_obj.name, ast, call_obj.token.start.line);
-        // usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
-        // usage_obj.line = call_obj.token.start.line;
         
         // Get the object for this one.
         var call_function_obj = factory(call_obj.name, "call", type_function_call, call_obj.token, null, null);
@@ -277,10 +420,27 @@ function parse_global_vars(ast) {
     GlobalIntellisenseRoot.add_obj("global_var", left_expr);
 }
 
-// Get the intellisense function to run
-function parse_composition_ast(ast, intl_func) {
-    var search_item = "new";
-    
-    var lvalue = new type_object();
-    var rvalue = new type_object();
+function parse_for_loop(ast) {
+    var for_expr = walk_tree(ast);
+    create_global_vars(for_expr);
+    // Now check the variables value
+    return for_expr;
+}
+
+function parse_while_loop(ast) {
+    var while_expr = walk_tree(ast);
+    create_global_vars(while_expr);
+    return while_expr;
+}
+
+function parse_switch_case(ast) {
+    var switch_expr = walk_tree(ast);
+    create_global_vars(switch_expr);
+    return switch_expr;
+}
+
+function parse_try_catch(ast) {
+    var try_catch_expr = walk_tree(ast);
+    create_global_vars(try_catch_expr);
+    return try_catch_expr;
 }

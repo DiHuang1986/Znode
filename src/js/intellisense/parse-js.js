@@ -807,6 +807,33 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                     case "call":
                         parse_call(ast);
                         break;
+
+                    case "for":
+                        parse_for_loop(ast);
+                        break;
+
+                    case "for-in":
+                        parse_for_loop(ast);
+                        break;
+
+                    case "while":
+                        parse_while_loop(ast);
+                        break;
+
+                    case "switch":
+                        parse_switch_case(ast);
+                        break;
+
+                    case "do":
+                        parse_while_loop(ast);
+                        break;
+
+                    case "try":
+                        parse_try_catch(ast);
+                        break;
+
+                    case "catch":
+                        break;
                 }
 
                 return ast;

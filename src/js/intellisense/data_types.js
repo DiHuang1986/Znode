@@ -333,11 +333,51 @@ function type_array_subscript() {
     this.subscript = null;
 }
 
+function type_unary_expr() {
+    type_object.call(this);
+    this.unary = "";
+}
+
+function type_for_loop() {
+    type_object.call(this);
+    this.loop_var1 = null;
+    this.loop_var2 = null;
+    this.binary_expr = null;
+    this.increment_decrement = null;
+    this.block = [];
+}
+
+function type_while_loop() {
+    type_object.call(this);
+    this.loop_var = null;
+    this.block = [];
+}
+
+function type_switch_case() {
+    type_object.call(this);
+    this.switch_var = null;
+    this.block = [];
+}
+
+function type_try_catch() {
+    type_object.call(this);
+    this.block = [];
+}
+
+function type_block() {
+    type_object.call(this);
+    this.lines = [];
+}
+
 type_expression.prototype      = new type_object;
 assign_expression.prototype    = new type_object;
 binary_expression.prototype    = new type_object;
 type_function_call.prototype   = new type_object;
 type_array_subscript.prototype = new type_object;
+type_unary_expr.prototype      = new type_object;
+type_for_loop.prototype = new type_object;
+type_block.prototype = new type_object;
+type_try_catch.prototype = new type_object;
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
