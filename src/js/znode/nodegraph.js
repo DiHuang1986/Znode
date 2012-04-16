@@ -513,7 +513,15 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             if (this.intellisenseObj != null) {
 
                 if (this.intellisenseObj.type == "defun" || this.intellisenseObj.type == "function")
-                    return this.intellisenseObj.get_source_code();
+                {
+                    var src_code;
+                    try {
+                        src_code = this.intellisenseObj.get_source_code();
+                    } catch(e) {
+                        src_code = "Not Defined";
+                    }
+                    return src_code;
+                }
 
                 if (this.intellisenseObj.type == "global_var") {
                     var str = "Initial Data Definition: " + this.intellisenseObj.initial_data_type;
@@ -853,8 +861,13 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         this.populateClassMembers = function() {
             var intellisense_obj = this.getIntellisenseObj();
             if (intellisense_obj != null && intellisense_obj.type == "defun") {
-            var class_members = this.getIntellisenseObj().get_class_members("all");
-            var str = class_members_to_string(class_members);
+            var str = "";
+            try {
+                var class_members = this.getIntellisenseObj().get_class_members("all");
+                str = class_members_to_string(class_members);
+            } catch(e) {
+                // When no definition could be found.
+            }
             // Now populate the members of the class into the data content
             $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
             }
@@ -1163,8 +1176,11 @@ while(curDate-date < millis);
             }
 
             // Get the data members for this class
-            var class_members = obj.get_class_members("all");
-            var str = class_members_to_string(class_members);
+            var str = "";
+            try {
+                var class_members = obj.get_class_members("all");
+                str = class_members_to_string(class_members);
+            } catch(e) { }
 
             node.txt[0].value = str;
 
@@ -1193,23 +1209,27 @@ while(curDate-date < millis);
 
     this.generateSingleCompositionConnection = function(obj, node) {
         // Now find all its parents and connect them
-        for (var key in obj.classes_where_composed) {
-            var composition_class_name = key;
-            var composition_node = this.getNodeFromName(composition_class_name);
+        if (obj.classes_where_composed != undefined) {
+            for (var key in obj.classes_where_composed) {
+                var composition_class_name = key;
+                var composition_node = this.getNodeFromName(composition_class_name);
 
-            var connectionPts = this.getConnectionPoints(node, composition_node);
-            createConnection(node, connectionPts[0], composition_node, connectionPts[1], "composition");
+                var connectionPts = this.getConnectionPoints(node, composition_node);
+                createConnection(node, connectionPts[0], composition_node, connectionPts[1], "composition");
+            }
         }
     }
 
     this.generateSingleInheritanceConnection = function (obj, node) {
         // Now find all its parents and connect them
-        for (var i = 0; i < obj.super_classes.length; ++i) {
-            var parent_class_name = obj.super_classes[i];
-            var parent_node = this.getNodeFromName(parent_class_name);
+        if (obj.super_classes != undefined) {
+            for (var i = 0; i < obj.super_classes.length; ++i) {
+                var parent_class_name = obj.super_classes[i];
+                var parent_node = this.getNodeFromName(parent_class_name);
 
-            var connectionPts = this.getConnectionPoints(node, parent_node);
-            createConnection(node, connectionPts[0], parent_node, connectionPts[1], "inheritance");
+                var connectionPts = this.getConnectionPoints(node, parent_node);
+                createConnection(node, connectionPts[0], parent_node, connectionPts[1], "inheritance");
+            }
         }
     }
     
