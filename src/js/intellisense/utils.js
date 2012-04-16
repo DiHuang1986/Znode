@@ -103,3 +103,8 @@ function class_members_to_string(class_members) {
 
     return str;
 }
+
+function clone(orig_obj) {
+    var clone = jQuery.extend(true, {}, orig_obj);
+    return clone;
+}

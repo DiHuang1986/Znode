@@ -1,7 +1,16 @@
 function clean_global_definitions_found() {
     // Now iterate through the list and find the global definitions
     for (key in GlobalIntellisenseRoot.get_global_variables()) {
-        if (!GlobalIntellisenseRoot.is_distinct_definition_present(key)) {
+        if (!GlobalIntellisenseRoot.is_distinct_global_var_definition_present(key)) {
+            GlobalIntellisenseRoot.delete_global_var(key);
+        }
+    }
+}
+
+function clean_defun_definitions_found() {
+    // Now iterate through the list and find the global definitions
+    for (key in GlobalIntellisenseRoot.get_global_classes()) {
+        if (!GlobalIntellisenseRoot.is_distinct_defun_definition_present(key)) {
             GlobalIntellisenseRoot.delete_global_var(key);
         }
     }
@@ -36,6 +45,8 @@ function generate_intellisense(code) {
     var ast = parse(code, false, true);
 
     clean_global_definitions_found();
+
+    clean_defun_definitions_found();
     
     return GlobalIntellisenseRoot;
 }

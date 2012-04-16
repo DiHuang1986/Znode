@@ -233,6 +233,7 @@ function walk_tree(ast) {
         },
 
         "function": function () {
+            var parent_clone = clone(this.parent);
             var func = factory(ast[1], "function", type_function, this.parent, null, ["function", ast[1], ["toplevel", [ast]], ast[2]]);
             
             // This is a hack. Not the right way but we don't have time to do anything more.
@@ -240,7 +241,7 @@ function walk_tree(ast) {
             // going to do it inside the defun parse call itself again with the qualified name.
             delete GlobalIntellisenseRoot.obj_dict[ast[1]];
 
-            func.token = this.parent;
+            func.token = parent_clone;
             return func;
         },
 
@@ -250,9 +251,7 @@ function walk_tree(ast) {
             var call_obj = new type_function_call();
             call_obj.type = "call";
             call_obj.token = this.parent;
-            var called_obj = walk_tree(ast[1]);
-            call_obj.name = called_obj.name;
-            call_obj.called_obj = called_obj;
+            call_obj.called_obj = walk_tree(ast[1]);
             call_obj.ast = ast;
 
             // Look at the arguments
@@ -264,8 +263,9 @@ function walk_tree(ast) {
         },
 
         "defun": function () {
+            var parent_clone = clone(this.parent);
             var func = factory(ast[1], "defun", type_function, this.parent, null, ["defun", ast[1], ["toplevel", [ast]], ast[2]]);
-            func.token = this.parent;
+            func.token = parent_clone;
             return func;
         },
 
@@ -502,7 +502,7 @@ function walk_tree(ast) {
     return func(ast);
 }
 
-function parse_defun(func_name, ast) {
+function parse_defun(ast) {
     var defun_func = walk_tree(ast);
     var usage_obj = new type_usage();
     usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
@@ -510,6 +510,9 @@ function parse_defun(func_name, ast) {
     
     defun_func.add_usage(usage_obj, "Class Definition");
     GlobalIntellisenseRoot.add_obj("defun", defun_func);
+
+    // Indicate that a proper definition has been found for this.
+    GlobalIntellisenseRoot.add_distinct_defun_definition_found(defun_func.name);
     return defun_func;
 }
 
@@ -579,6 +582,13 @@ function parse_global_vars(ast) {
 
     GlobalIntellisenseRoot.add_obj("global_var", left_expr);
     
+    // Look at the right side of the expression
+    if (right_expr.type == "composition") {
+        var right_expr_obj = factory(right_expr.name, "defun", type_function, right_expr.token, null, []);
+        GlobalIntellisenseRoot.add_variable_class_mapping(left_expr.name, right_expr.name);
+        GlobalIntellisenseRoot.add_obj("defun", right_expr);
+    }
+
     // Indicate that a proper definition has been found for this.
     GlobalIntellisenseRoot.add_distinct_global_var_definition_found(left_expr.name);
 }
@@ -616,4 +626,49 @@ function parse_if(ast) {
     var if_expr = walk_tree(ast);
     create_global_vars(if_expr);
     return if_expr;
+}
+
+// Definition list could be null
+function populate_function_calls(call_expr, definition_list) {
+    // Find whether a variable has been defined which composes the class
+    // from where we are trying to call this function.
+    var defunObj;
+    var called_obj = call_expr.called_obj;
+
+    // Now check if the called_obj has a child. If it does then its a function call from
+    // a composed class.
+    var parent = null;
+    var child = "";   // This is if its an internal function.
+    var mapping_name = "";
+    if (called_obj.child != null) {
+        parent = called_obj.name;
+        child = called_obj.child.name;
+        if (definition_list.hasOwnProperty(parent)) {
+            mapping_name = definition_list[parent].get_mapping();
+        }
+        else if (GlobalIntellisenseRoot.is_variable_class_mapping_defined(parent)) {
+            mapping_name = GlobalIntellisenseRoot.get_variable_class_mapping(parent).get_mapping();
+        }
+    }    
+    else {
+        mapping_name = called_obj.name;
+    }
+
+    // This should be in global defun. If not then create an object. We will clean it up
+    // later
+    defunObj = GlobalIntellisenseRoot.get_single_defun(mapping_name)
+    if (defunObj == undefined) {
+        // Undefined. We need to create a new one
+        defunObj = factory(mapping_name, "defun", type_function, null, null, []);
+    }
+
+    var usage = create_usage_object(called_obj.name, call_expr.ast, call_expr.token.start.line);
+
+    if (child == "")
+        defunObj.add_usage(usage, "Function Call");
+    else {
+        // This is an internal function of a class. So add it appropriately.
+        var internal_func_obj = defunObj.class_members[mapping_name + "." + child][0];
+        internal_func_obj.add_usage("Function Call", usage);
+    }
 }

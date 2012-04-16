@@ -780,10 +780,8 @@ function parse($TEXT, exigent_mode, embed_tokens) {
 
                 switch (ast[0].name) {
                     case "defun":
-                        parse_defun(arguments[1], ast);
+                        parse_defun(ast);
                         this.entered_defun_stack.pop();
-                        if (this.entered_defun_stack.length > 0)
-                            alert("This is an error. We shouldn't be hitting this");
                         break;
 
                     case "assign":
@@ -812,7 +810,9 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                         break;
 
                     case "call":
-                        parse_call(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_call(ast);
+                        }
                         break;
 
                     case "for":

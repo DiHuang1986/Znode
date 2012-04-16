@@ -88,8 +88,12 @@ function type_function() {
     this.classes_this_composes = {};
     
     this.dependencies = {};
-    
-    this.class_members  = {};
+
+    this.class_members = {};
+
+    this.variable_class_mapping = {}; // From composition we want to store a list of
+                                      // variables which compose some class in order to call
+                                      // functions from it.
        
     this.add_classes_where_composed = function(name, obj) {
         if (!this.classes_where_composed.hasOwnProperty(name)) {
@@ -186,6 +190,21 @@ function type_function() {
         return this.classes_this_composes;
     }
 
+    this.is_variable_class_mapping_defined = function (name) {
+        return this.variable_class_mapping.hasOwnProperty(name);
+    }
+
+    this.add_variable_class_mapping = function (var_name, class_name) {
+        if (this.variable_class_mapping.hasOwnProperty(var_name)) {
+            var mapping_obj = this.variable_class_mapping[var_name];
+            mapping_obj.add_mapping(class_name);
+        }
+        else {
+            this.variable_class_mapping[var_name] = new type_variable_class_mapping();
+            this.variable_class_mapping[var_name].add_mapping(class_name);
+        }
+    }
+
     this.walk_function = function () {
         // Walk the ast for the function alone to generate the dependency graph
         var code_ast = this.ast[1][0][3];
@@ -222,6 +241,7 @@ function type_function() {
 
                             class_composed.add_classes_where_composed(this.name, this);
                             this.add_dependency(right_expr.name);
+                            this.add_variable_class_mapping(left_expr_name, right_expr_name);
                         }
 
                         var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
@@ -266,6 +286,7 @@ function type_function() {
                         break;
 
                     case "call":
+                        populate_function_calls(expr, this.variable_class_mapping);
                         break;
 
                     case "for-in":
@@ -387,6 +408,20 @@ function type_ignore() {
     type_object.call(this);
 }
 
+function type_variable_class_mapping() {
+    type_object.call(this);
+    this.var_name = "";
+    this.class_mapping = "";
+
+    this.add_mapping = function(class_name) {
+        this.class_mapping = class_name;
+    }
+
+    this.get_mapping = function () {
+        return this.class_mapping;
+    }
+}
+
 type_expression.prototype      = new type_object;
 assign_expression.prototype    = new type_object;
 binary_expression.prototype    = new type_object;
@@ -398,6 +433,8 @@ type_block.prototype           = new type_object;
 type_try_catch.prototype       = new type_object;
 type_if_expr.prototype         = new type_object;
 type_function_call.prototype = new type_object;
+type_variable_class_mapping.prototype = new type_object;
+
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
@@ -459,6 +496,8 @@ function global_node() {
     this.defun = {};
     this.global_vars = {};
     this.distinct_global_var_definition_found = {}; // For global variables
+    this.distinct_defun_found = {};
+    this.variable_class_mapping = {};               // For global variables holding composition.
 
     this._add_global_var = function (global_var_name, global_var_obj) {
         this.global_vars[global_var_name] = global_var_obj;
@@ -484,12 +523,39 @@ function global_node() {
         }
     }
 
+    this.add_distinct_defun_definition_found = function (name) {
+        this.distinct_defun_found[name] = true;
+    }
+
     this.add_distinct_global_var_definition_found = function(name) {
         this.distinct_global_var_definition_found[name] = true;
     }
 
-    this.is_distinct_definition_present = function (name) {
+    this.is_distinct_defun_definition_present = function(name) {
+        return this.distinct_defun_found.hasOwnProperty(name);
+    }
+
+    this.is_distinct_global_var_definition_present = function (name) {
         return this.distinct_global_var_definition_found.hasOwnProperty(name);
+    }
+
+    this.get_variable_class_mapping = function (name) {
+        return this.variable_class_mapping[name];
+    }
+
+    this.is_variable_class_mapping_defined = function(name) {
+        return this.variable_class_mapping.hasOwnProperty(name);
+    }
+
+    this.add_variable_class_mapping = function (var_name, class_name) {
+        if (this.variable_class_mapping.hasOwnProperty(var_name)) {
+            var mapping_obj = this.variable_class_mapping[var_name];
+            mapping_obj.add_mapping(class_name);
+        }
+        else {
+            this.variable_class_mapping[var_name] = new type_variable_class_mapping();
+            this.variable_class_mapping[var_name].add_mapping(class_name);
+        }
     }
 
     this.get_single_defun = function (name) {
@@ -511,6 +577,12 @@ function global_node() {
     this.delete_global_var = function (name) {
         if (this.global_vars.hasOwnProperty(name)) {
             delete this.global_vars[name];
+        }
+    }
+
+    this.delete_defun = function (name) {
+        if (this.defun.hasOwnProperty(name)) {
+            delete this.defun[name];
         }
     }
 
