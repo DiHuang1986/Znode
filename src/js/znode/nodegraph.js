@@ -488,7 +488,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         });
         n.css("z-index", zindex++);
 
-        if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
+        if (this.intellisenseObj != null && this.intellisenseObj.type != "defun")
             n.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))" });
 
         this.content = n;
@@ -659,7 +659,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#SourceViewPopup").modal('show');
         });
 
-        if (this.intellisenseObj != null && this.intellisenseObj.type != "global_var") {
+        if (this.intellisenseObj != null && this.intellisenseObj.type == "defun") {
             if (!noDelete) {
                 n.append("<img id='" + this.getHtmlIdName("inheritance") + "' width=15 height=15 src='img/inheritance.png' rel='tooltip' title='Show Inheritance Diagram'><\/img>");
                 var inheritance = $("#" + this.getHtmlIdName("inheritance"));
@@ -841,7 +841,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             "-webkit-border-radius" : "10px",
         });
 
-        if (this.intellisenseObj != null && this.intellisenseObj.type == "global_var")
+        if (this.intellisenseObj != null && this.intellisenseObj.type != "defun")
             txt.css({ "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))", });
 
         this.txt = txt;

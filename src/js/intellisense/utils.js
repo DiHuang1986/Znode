@@ -89,6 +89,8 @@ function getTokenDisplayName(token_name) {
             return "Globals";
             break;
     }
+
+    return token_name;
 }
 
 // Returns the name & type of the object

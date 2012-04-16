@@ -16,6 +16,7 @@ function type_object() {
     this.value = null;
     this.token = null;
     this.initial_data_type = null; // Only valid for variables
+    this.ast = null;
     this.usage = {};
     
     this.toString = function() {
@@ -191,6 +192,7 @@ function type_function() {
 
         for (var i = 0; i < code_ast.length; ++i) {
             var expr = walk_tree(code_ast[i]);
+            create_global_vars(expr);
 
             if (expr != null) {
                 switch (expr.type) {
@@ -264,10 +266,10 @@ function type_function() {
                         break;
 
                     case "call":
-                        // Find if the called function has been defined before or not.
-                        // If not then add it to unmet dependencies.
-                        var call_expr = expr;
                         break;
+
+                    case "for-in":
+                        break
 
                     case "sub":
                         var array_sub_expr = expr;
@@ -311,8 +313,8 @@ function assign_expression() {
 function binary_expression() {
     type_object.call(this);    
     this.operator = "";
-    this.binary_lhs = null;
-    this.binary_rhs = null;
+    this.left_expr = null;
+    this.right_expr = null;
 }
 
 function type_usage() {
@@ -349,13 +351,19 @@ function type_for_loop() {
 
 function type_while_loop() {
     type_object.call(this);
-    this.loop_var = null;
+    this.binary_expr = null;
     this.block = [];
 }
 
 function type_switch_case() {
     type_object.call(this);
     this.switch_var = null;
+    this.block = [];
+}
+
+function type_if_expr() {
+    type_object.call(this);
+    this.binary_expr = null;
     this.block = [];
 }
 
@@ -369,15 +377,27 @@ function type_block() {
     this.lines = [];
 }
 
+function type_function_call() {
+    type_object.call(this);
+    this.called_obj = null;
+    this.args = [];
+}
+
+function type_ignore() {
+    type_object.call(this);
+}
+
 type_expression.prototype      = new type_object;
 assign_expression.prototype    = new type_object;
 binary_expression.prototype    = new type_object;
 type_function_call.prototype   = new type_object;
 type_array_subscript.prototype = new type_object;
 type_unary_expr.prototype      = new type_object;
-type_for_loop.prototype = new type_object;
-type_block.prototype = new type_object;
-type_try_catch.prototype = new type_object;
+type_for_loop.prototype        = new type_object;
+type_block.prototype           = new type_object;
+type_try_catch.prototype       = new type_object;
+type_if_expr.prototype         = new type_object;
+type_function_call.prototype = new type_object;
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
@@ -438,6 +458,7 @@ function global_node() {
     this.obj_dict = {};
     this.defun = {};
     this.global_vars = {};
+    this.distinct_global_var_definition_found = {}; // For global variables
 
     this._add_global_var = function (global_var_name, global_var_obj) {
         this.global_vars[global_var_name] = global_var_obj;
@@ -450,15 +471,25 @@ function global_node() {
     this.add_obj = function (obj_type, obj) {
         switch (obj_type) {
             case "global_var":
+                obj.type = "global_var";
                 this._add_global_var(obj.name, obj);
                 this.add_to_object_dictionary(obj.name, obj);
                 break;
 
             case "defun":
+                obj.type = "defun";
                 this._add_global_func(obj.name, obj);
                 this.add_to_object_dictionary(obj.name, obj);
                 break;
         }
+    }
+
+    this.add_distinct_global_var_definition_found = function(name) {
+        this.distinct_global_var_definition_found[name] = true;
+    }
+
+    this.is_distinct_definition_present = function (name) {
+        return this.distinct_global_var_definition_found.hasOwnProperty(name);
     }
 
     this.get_single_defun = function (name) {
@@ -475,6 +506,12 @@ function global_node() {
 
     this.is_defun_present = function (name) {
         return this.defun.hasOwnProperty(name);
+    }
+
+    this.delete_global_var = function (name) {
+        if (this.global_vars.hasOwnProperty(name)) {
+            delete this.global_vars[name];
+        }
     }
 
     // Names stored in Global Object dictionary. This will

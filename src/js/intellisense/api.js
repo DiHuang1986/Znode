@@ -1,3 +1,12 @@
+function clean_global_definitions_found() {
+    // Now iterate through the list and find the global definitions
+    for (key in GlobalIntellisenseRoot.get_global_variables()) {
+        if (!GlobalIntellisenseRoot.is_distinct_definition_present(key)) {
+            GlobalIntellisenseRoot.delete_global_var(key);
+        }
+    }
+}
+
 function get_class_obj(class_name) {
     return GlobalIntellisenseRoot.obj_dict[class_name];
 }
@@ -26,13 +35,7 @@ function generate_intellisense(code) {
 
     var ast = parse(code, false, true);
 
-    // Now since we have all the classes go through them to see if we have source code for all of them and if they are present
-    // then generate the data members.
-//    for (var key in GlobalIntellisenseRoot.defun) {
-//        var dependency_src_code = "";
-//        var obj = GlobalIntellisenseRoot.defun[key];
-//        obj.generate_data_members();
-//    }
+    clean_global_definitions_found();
     
     return GlobalIntellisenseRoot;
 }

@@ -1,36 +1,142 @@
+function serialize_binary_expr(expr, return_array) {
+    if (expr.left_expr.type != "binary_expr" && expr.right_expr.type != "binary_expr") {
+        return_array.push(expr);
+    }
+    else {
+        if (expr.left_expr.type == "binary_expr")
+            return_array = serialize_binary_expr(expr.left_expr, return_array);
+        else
+            return_array.push(expr.left_expr);
+
+        if (expr.right_expr.type == "binary_expr")
+            return_array = serialize_binary_expr(expr.right_expr, return_array);
+        else
+            return_array.push(expr.right_expr);
+    }
+
+    return return_array;
+}
+
+// token is optional for objects like unary_expr
+// Add the type too for usage.
+function add_single_object(single_obj, type, keyword_to_match, ast, token) {
+    try {
+        if (single_obj.type == keyword_to_match) {
+            var global_obj = factory(single_obj.name, single_obj.type, type_object, single_obj.token, null, []);
+
+            var usage_obj = create_usage_object(single_obj.name, ast, single_obj.token.start.line);
+            global_obj.add_usage(usage_obj, type);
+            global_obj.type = "global_var";
+
+            GlobalIntellisenseRoot.add_obj("global_var", global_obj);
+        }
+    } catch(e) {
+        // This might be a unary expr. Then single_obj is just a name
+        var global_obj = factory(single_obj, "num", type_object, single_obj, token, null, []);
+
+        var usage_obj = create_usage_object(single_obj, ast, token.start.line);
+        global_obj.add_usage(usage_obj, "num");
+
+        GlobalIntellisenseRoot.add_obj("global_var", global_obj);
+    }
+}
+
+// Add the objects based on whether they are assign expressions or binary_expressions etc
+function add_expressions(obj, keyword_to_match, ast) {
+    // Decide which ast to send
+    var ast_to_send = (ast == undefined) ? obj.ast : ast;
+
+    if (obj.type == "assign_expr" || obj.type == "binary_expr") {
+
+        add_single_object(obj.left_expr, obj.right_expr.type, "name", ast_to_send);
+        add_single_object(obj.right_expr, obj.right_expr.type, "name", ast_to_send);
+
+    } else if (obj.type == "unary_expr") {
+
+        add_single_object(obj.name, "num", "name", ast_to_send, obj.token);        
+    }
+}
+
 // Look at the object and create global vars.
 function create_global_vars(obj) {
     // Now loop through the block variable of all the objects and create globals
     if (Introspect.typeOf(obj) == "object") {
-        // First see if we have a variable
-        var global_obj = factory(obj.name, obj.type, type_object, obj.token, null, []);
-        GlobalIntellisenseRoot.add_obj("global_var", global_obj);
-        switch(obj.type) {
-            case "for-in":
-                var name1 = global_obj.loop_var1;
-                var name2 = global_obj.loop_var2;
 
-                var global_obj1 = factory(name1, name1.type, type_object, name1.token, null, []);
-                var global_obj2 = factory(name2, name2.type, type_object, name2.token, null, []);
-                
-                GlobalIntellisenseRoot.add_obj("global_var", global_obj1);
-                GlobalIntellisenseRoot.add_obj("global_var", global_obj2);
-                break;
+        if (obj.type == "for-in" || obj.type == "for_loop" || obj.type == "while_loop" ||
+            obj.type == "if_expr" || obj.type == "switch_case" || obj.type == "try_catch") {
+            // First see if we have a variable
+            switch(obj.type) {
+                case "for-in":
+                    var name1 = obj.loop_var1;
+                    var name2 = obj.loop_var2;
 
-            case "for_loop":
-                break;
+                    add_single_object(name1, "name", obj.ast);
+                    add_single_object(name2, "name", obj.ast);
+
+                    break;
+
+                case "for_loop":
+                    var assign_expr = obj.loop_var1;
+                    add_expressions(assign_expr, "name", obj.ast);
+
+                    var binary_expr = obj.binary_expr;
+                    add_expressions(binary_expr, "name", obj.ast);
+
+                    var increment_decrement_expr = obj.increment_decrement;
+                    add_expressions(increment_decrement_expr, "name", obj.ast);
+                    break;
             
-            case "while_loop":
-                break;
+                case "while_loop":
+                case "if_expr":
+                    var bin_expr = obj.binary_expr;
                 
-            case "switch_case":
-                break;
+                    // Now this should be a list
+                    for (var i = 0; i < bin_expr.length; ++i) {
+                        add_expressions(bin_expr[i], "name", obj.ast);
+                    }
                 
-            case "try_catch":
-                break;      
+                    break;
+
+                case "switch_case":
+                    var switch_var = obj.switch_var;
+                    add_single_object(switch_var, switch_var.type, "name", obj.ast);
+                    break;
+
+                case "try_catch":
+                    break;      
+            }
+
+            // Now get the blocks and parse them too
+            var block = obj.block;
+            for (var i = 0; i < block.length; ++i) {
+                create_global_vars(block[i]);
+            }
+        } else {
+            switch(obj.type) {
+                case "assign_expr":
+                add_expressions(obj, "name", obj.ast);
+                break;
+
+                case "composition":
+                add_expressions(obj, "name", obj.ast);
+                break;
+
+                case "call":
+                for (var i = 0; i < obj.args.length; ++i) {
+                    add_single_object(obj.args[i], obj.args[i].type, "name", obj.ast);
+                }
+                break;
+
+                case "binary_expr":
+                add_expressions(obj, "name", obj.ast);
+                break;
+
+                case "unary_expr":
+                add_expressions(obj, "name", obj.ast);
+                break;
+            }    
         }
-    }
-    else {
+    } else {
         alert("Invalid object sent to create global variables");
     }
 }
@@ -59,6 +165,7 @@ function walk_tree(ast) {
             assign_expr.token = this.parent;
             assign_expr.type = "assign_expr";
             assign_expr.left_expr = walk_tree(ast[2]);
+            assign_expr.ast = ast;
 
             // Handle a special case in which the rhs could be a function. In this case the function name doesn't show
             // up in the ast and hence we need to manually feed it.
@@ -80,11 +187,16 @@ function walk_tree(ast) {
             var assign_expr = new assign_expression();
             assign_expr.token = this.parent;
             assign_expr.type = "assign_expr";
+            assign_expr.ast = ast;
 
             assign_expr.left_expr = factory(ast[1][0][0], "var", type_object);
             assign_expr.left_expr.token = this.parent;
-            // assign_expr.left_expr.name = ast[1][0][0];
-            assign_expr.right_expr = walk_tree(ast[1][0][1]);
+
+            if (ast[1][0].length > 1) {
+                assign_expr.right_expr = walk_tree(ast[1][0][1]);
+            } else {
+                assign_expr.right_expr = new type_ignore();
+            }
             assign_expr.name = assign_expr.left_expr.name;
 
             return assign_expr;
@@ -99,6 +211,7 @@ function walk_tree(ast) {
             dot_obj.child = new type_object();
             dot_obj.child.name = ast[2];
             dot_obj.child.parent = dot_obj;
+            dot_obj.ast = ast;
             return dot_obj;
         },
 
@@ -107,6 +220,7 @@ function walk_tree(ast) {
             new_obj.token = this.parent;
             new_obj.type = "name";
             new_obj.name = ast[1];
+            new_obj.ast = ast;
             return new_obj;
         },
 
@@ -114,6 +228,7 @@ function walk_tree(ast) {
             var expr = walk_tree(ast[1]);
             expr.token = this.parent;
             expr.type = "composition";
+            expr.ast = ast;
             return expr;
         },
 
@@ -132,12 +247,19 @@ function walk_tree(ast) {
         "call": function () {
             // Call the function. At this point if it is embedded in another function then its
             // data members are inherited.
-            var call_obj = new type_object();
+            var call_obj = new type_function_call();
             call_obj.type = "call";
             call_obj.token = this.parent;
             var called_obj = walk_tree(ast[1]);
             call_obj.name = called_obj.name;
-            call_obj.obj = called_obj;
+            call_obj.called_obj = called_obj;
+            call_obj.ast = ast;
+
+            // Look at the arguments
+            for (var i = 0; i < ast[2].length; ++i) {
+                call_obj.args.push(walk_tree(ast[2][i]));
+            }
+
             return call_obj;
         },
 
@@ -152,6 +274,7 @@ function walk_tree(ast) {
             return_expr.token = this.parent;
             return_expr.type = "return_expr";
             return_expr.expr = walk_tree(ast[1]);
+            return_expr.ast = ast;
             return return_expr;
         },
 
@@ -160,6 +283,7 @@ function walk_tree(ast) {
             obj.token = this.parent;
             obj.type = "string";
             obj.value = ast[1];
+            obj.ast = ast;
             return obj;
         },
 
@@ -168,6 +292,7 @@ function walk_tree(ast) {
             obj.token = this.parent;
             obj.type = "num";
             obj.value = ast[1];
+            obj.ast = ast;
             return obj;
         },
 
@@ -175,24 +300,29 @@ function walk_tree(ast) {
             var binary_expr = new binary_expression();
             binary_expr.token = this.parent;
             binary_expr.type = "binary_expr";
-            binary_expr.binary_lhs = walk_tree(ast[2]);
-            binary_expr.binary_rhs = walk_tree(ast[3]);
+            binary_expr.left_expr = walk_tree(ast[2]);
+            binary_expr.right_expr = walk_tree(ast[3]);
+            binary_expr.ast = ast;
             return binary_expr;
         },
 
         "unary-prefix": function() {
             var unary_expr = new type_unary_expr();
+            unary_expr.type = "unary_expr";
             unary_expr.name = ast[2][1];
             unary_expr.unary = ast[1];
             unary_expr.token = this.parent;
+            unary_expr.ast = ast;
             return unary_expr;
         },
 
         "unary-postfix": function() {
             var unary_expr = new type_unary_expr();
+            unary_expr.type = "unary_expr";
             unary_expr.name = ast[2][1];
             unary_expr.unary = ast[1];
             unary_expr.token = this.parent;
+            unary_expr.ast = ast;
             return unary_expr;              
         },
 
@@ -207,6 +337,7 @@ function walk_tree(ast) {
 
             for_expr.token = this.parent;
             for_expr.type = "for_loop";
+            for_expr.ast = ast;
             return for_expr;
         },
 
@@ -218,6 +349,7 @@ function walk_tree(ast) {
             var block = walk_tree(ast[4]);
             for_expr.block = block.lines;
             for_expr.token = this.parent;
+            for_expr.ast = ast;
             return for_expr;
         },
 
@@ -229,21 +361,41 @@ function walk_tree(ast) {
                 block_expr.lines.push(line_obj);
             }
 
+            block_expr.ast = ast;
+
             return block_expr;
         },
 
-        "if": function () { },
+        "if": function () { 
+            var if_expr = new type_if_expr();
+            if_expr.type = "if_expr";
+            if_expr.token = this.parent;
+            if_expr.ast = ast;
+            if_expr.binary_expr = walk_tree(ast[1]);
+
+            var serialized_list = [];
+            if_expr.binary_expr = serialize_binary_expr(if_expr.binary_expr, serialized_list);
+
+            var block = walk_tree(ast[2]);
+            if_expr.block = block.lines;
+
+            return if_expr;
+        },
 
         "do": function () {
             var while_expr = new type_while_loop();
             while_expr.type = "while_loop";
 
-            while_expr.loop_var = walk_tree(ast[1]);
+            while_expr.binary_expr = walk_tree(ast[1]);
+            var serialized_list = [];
+            while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
+
             var block_expr = walk_tree(ast[2]);
 
             while_expr.block = block_expr.lines;
-            while_expr.name = while_expr.loop_var.name;
             while_expr.token = this.parent;
+
+            while_expr.ast = ast;
 
             return while_expr;            
         },
@@ -252,13 +404,16 @@ function walk_tree(ast) {
             var while_expr = new type_while_loop();
             while_expr.type = "while_loop";
             
-            while_expr.loop_var = walk_tree(ast[1]);
-            
+            while_expr.binary_expr = walk_tree(ast[1]);
+            var serialized_list = [];
+            while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
+
             var block_expr = walk_tree(ast[2]);
     
             while_expr.block = block_expr.lines;
-            while_expr.name = while_expr.loop_var.name;
             while_expr.token = this.token;
+
+            while_expr.ast = ast;
 
             return while_expr; 
         },
@@ -266,7 +421,7 @@ function walk_tree(ast) {
         "switch": function () { 
             var switch_expr = new type_switch_case();
             switch_expr.type = "switch_case";
-            switch_expr.switch_var = ast[1][1];
+            switch_expr.switch_var = walk_tree(ast[1]);
             switch_expr.name = switch_expr.switch_var;
             for (var i = 0; i < ast[2].length; ++i) {
                 // ast[2][i][0] -- Case call
@@ -276,7 +431,7 @@ function walk_tree(ast) {
                 }
             }
             switch_expr.token = this.parent;
-
+            switch_expr.ast = ast;
             return switch_expr;
         },
 
@@ -293,11 +448,15 @@ function walk_tree(ast) {
             sub_expr.name = array_obj.name;
             sub_expr.token = this.parent;
             sub_expr.type = "array_subscript";
+            sub_expr.ast = ast;
             return sub_expr;
         },
 
         "break" : function() {
-            // Do nothing
+            var ignore = new type_ignore();
+            ignore.type = "ignore";
+            ignore.name = "ignore";
+            return ignore;
         },
 
         "try" : function() {
@@ -311,6 +470,7 @@ function walk_tree(ast) {
             }
 
             try_expr.token = this.parent;
+            try_expr.ast = ast;
 
             return try_expr;
         },
@@ -418,6 +578,13 @@ function parse_global_vars(ast) {
         left_expr.initial_data_type = right_expr.type;
 
     GlobalIntellisenseRoot.add_obj("global_var", left_expr);
+    
+    // Indicate that a proper definition has been found for this.
+    GlobalIntellisenseRoot.add_distinct_global_var_definition_found(left_expr.name);
+}
+
+function parse_assign(ast) {
+    parse_global_vars(ast);
 }
 
 function parse_for_loop(ast) {
@@ -443,4 +610,10 @@ function parse_try_catch(ast) {
     var try_catch_expr = walk_tree(ast);
     create_global_vars(try_catch_expr);
     return try_catch_expr;
+}
+
+function parse_if(ast) {
+    var if_expr = walk_tree(ast);
+    create_global_vars(if_expr);
+    return if_expr;
 }
