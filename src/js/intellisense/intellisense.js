@@ -125,9 +125,20 @@ function create_global_vars(obj) {
 
             // Now get the blocks and parse them too
             var block = obj.block;
-            for (var i = 0; i < block.length; ++i) {
-                create_global_vars(block[i]);
+            
+            if (block.type == "block_expr") {
+                for (var i = 0; i < block.length; ++i) {
+                    create_global_vars(block[i]);
+                }
             }
+            else if (block.type == "assign_expr" || block.type == "binary_expr") {
+                add_expressions(block, "name", block.ast);
+            }
+            else {
+                add_single_object(block, block.type, "name", block.ast, block.token);
+            }
+
+
         } else {
             switch(obj.type) {
                 case "assign_expr":
@@ -367,6 +378,7 @@ function walk_tree(ast) {
 
         "block" : function() {
             var block_expr = new type_block();
+            block_expr.type = "block_expr";
 
             for (var key in ast[1]) {
                 var line_obj = walk_tree(ast[1][key]);
@@ -390,7 +402,10 @@ function walk_tree(ast) {
                 if_expr.binary_expr = serialize_binary_expr(if_expr.binary_expr, serialized_list);
 
             var block = walk_tree(ast[2]);
-            if_expr.block = block.lines;
+            if (block.type == "block_expr")
+                if_expr.block = block.lines;
+            else
+                if_expr.block = block;
 
             return if_expr;
         },

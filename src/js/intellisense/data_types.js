@@ -286,16 +286,20 @@ function type_function() {
                     case "function":
                         var block = expr.block;
 
-                        for (var kcounter = 0; kcounter < block.length; ++kcounter) {
-                            var block_expr = block[kcounter];
-                            if (block_expr.type == "call") {
-                                if (block_expr.name == "this") {
-                                    var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
-                                    func_obj.add_usage("Function Call", block_expr);
-                                } else {
-                                    populate_function_calls(block_expr);
+                        if (block.type == "block_expr") {
+                            for (var kcounter = 0; kcounter < block.length; ++kcounter) {
+                                var block_expr = block[kcounter];
+                                if (block_expr.type == "call") {
+                                    if (block_expr.name == "this") {
+                                        var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
+                                        func_obj.add_usage("Function Call", block_expr);
+                                    } else {
+                                        populate_function_calls(block_expr);
+                                    }
                                 }
                             }
+                        } else {
+                           // Need to see if we need it now.
                         }
 
                         break
