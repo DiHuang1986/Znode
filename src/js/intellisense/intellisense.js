@@ -20,24 +20,33 @@ function serialize_binary_expr(expr, return_array) {
 // token is optional for objects like unary_expr
 // Add the type too for usage.
 function add_single_object(single_obj, type, keyword_to_match, ast, token) {
-    try {
-        if (single_obj.type == keyword_to_match && single_obj.name != "this") {
-            var global_obj = factory(single_obj.name, type, type_object, single_obj.token, null, []);
+    if (single_obj.name != "document") {
+        try {
+            if (single_obj.type == keyword_to_match && single_obj.name != "this") {
 
-            var usage_obj = create_usage_object(single_obj.name, ast, single_obj.token.start.line);
-            global_obj.add_usage(usage_obj, type);
-            global_obj.type = "global_var";
+                var global_obj = factory(single_obj.name, type, type_object, single_obj.token, null, []);
+                var usage_obj;
+                
+                try {
+                    usage_obj = create_usage_object(single_obj.name, ast, single_obj.token.start.line);
+                } catch(e) {
+                    usage_obj = create_usage_object(single_obj.name, ast, single_obj.token);
+                }
+
+                global_obj.add_usage(usage_obj, type);
+                global_obj.type = "global_var";
+
+                GlobalIntellisenseRoot.add_obj("global_var", global_obj);
+            }
+        } catch(e) {
+            // This might be a unary expr. Then single_obj is just a name
+            var global_obj = factory(single_obj, "num", type_object, single_obj, token, null, []);
+
+            var usage_obj = create_usage_object(single_obj, ast, token.start.line);
+            global_obj.add_usage(usage_obj, "num");
 
             GlobalIntellisenseRoot.add_obj("global_var", global_obj);
         }
-    } catch(e) {
-        // This might be a unary expr. Then single_obj is just a name
-        var global_obj = factory(single_obj, "num", type_object, single_obj, token, null, []);
-
-        var usage_obj = create_usage_object(single_obj, ast, token.start.line);
-        global_obj.add_usage(usage_obj, "num");
-
-        GlobalIntellisenseRoot.add_obj("global_var", global_obj);
     }
 }
 
@@ -89,7 +98,15 @@ function create_global_vars(obj) {
                 case "while_loop":
                 case "if_expr":
                     var bin_expr = obj.binary_expr;
-                
+                    
+                    if (bin_expr == "name") {
+                        add_single_object(bin_expr, bin_expr.type, "name", bin_expr.ast, bin_expr.token);
+                    }
+
+                    if (bin_expr == "binary_expr") {
+                        add_expressions(bin_expr, "name", bin_expr.ast);
+                    }
+
                     // Now this should be a list
                     for (var i = 0; i < bin_expr.length; ++i) {
                         add_expressions(bin_expr[i], "name", obj.ast);
@@ -236,11 +253,6 @@ function walk_tree(ast) {
             var parent_clone = clone(this.parent);
             var func = factory(ast[1], "function", type_function, this.parent, null, ["function", ast[1], ["toplevel", [ast]], ast[2]]);
             
-            // This is a hack. Not the right way but we don't have time to do anything more.
-            // We don't need to add to global intellisense root if it's a local function. We are 
-            // going to do it inside the defun parse call itself again with the qualified name.
-            delete GlobalIntellisenseRoot.obj_dict[ast[1]];
-
             func.token = parent_clone;
             return func;
         },
@@ -374,7 +386,8 @@ function walk_tree(ast) {
             if_expr.binary_expr = walk_tree(ast[1]);
 
             var serialized_list = [];
-            if_expr.binary_expr = serialize_binary_expr(if_expr.binary_expr, serialized_list);
+            if (if_expr.binary_expr.type == "binary_expr") 
+                if_expr.binary_expr = serialize_binary_expr(if_expr.binary_expr, serialized_list);
 
             var block = walk_tree(ast[2]);
             if_expr.block = block.lines;
@@ -388,7 +401,8 @@ function walk_tree(ast) {
 
             while_expr.binary_expr = walk_tree(ast[1]);
             var serialized_list = [];
-            while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
+            if (while_expr.binary_expr.type == "binary_expr")
+                while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
 
             var block_expr = walk_tree(ast[2]);
 
@@ -406,7 +420,8 @@ function walk_tree(ast) {
             
             while_expr.binary_expr = walk_tree(ast[1]);
             var serialized_list = [];
-            while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
+            if (while_expr.binary_expr.type == "binary_expr")
+                while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
 
             var block_expr = walk_tree(ast[2]);
     
@@ -459,6 +474,13 @@ function walk_tree(ast) {
             return ignore;
         },
 
+        "array" : function () {
+            var ignore = new type_ignore();
+            ignore.type = "ignore";
+            ignore.name = "ignore";
+            return ignore;            
+        },
+
         "try" : function() {
             var try_expr = new type_try_catch();
             try_expr.type = "try_catch";
@@ -489,7 +511,7 @@ function walk_tree(ast) {
     // Debug Code... If we encounter something for which we haven't speculated yet. Lets see it
     var myImplementedList = ["binary", "num", "string", "return", "defun", "call", "function", "new", "name",
                              "dot", "stat", "var", "assign", "if", "do", "while", "switch", "case", "sub", 
-                             "unary-prefix", "for", "block", "break", "try", "for-in"];
+                             "unary-prefix", "for", "block", "break", "try", "for-in", "array"];
 
     if (myImplementedList.indexOf(token_str) == -1)
         alert("Unimplemented token: " + token_str);
@@ -504,17 +526,19 @@ function walk_tree(ast) {
 
 function parse_defun(ast) {
     var defun_func = walk_tree(ast);
-    var usage_obj = new type_usage();
-    usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
-    usage_obj.line = defun_func.token.start.line;
+    if (defun_func.name != "this") {
+        var usage_obj = new type_usage();
+        usage_obj.code_str = gen_code(["toplevel", [ast]], { beautify : true });
+        usage_obj.line = defun_func.token.start.line;
     
-    defun_func.add_usage(usage_obj, "Class Definition");
-    GlobalIntellisenseRoot.add_obj("defun", defun_func);
+        defun_func.add_usage(usage_obj, "Class Definition");
+        GlobalIntellisenseRoot.add_obj("defun", defun_func);
 
-    // Indicate that a proper definition has been found for this.
-    GlobalIntellisenseRoot.add_distinct_defun_definition_found(defun_func.name);
+        // Indicate that a proper definition has been found for this.
+        GlobalIntellisenseRoot.add_distinct_defun_definition_found(defun_func.name);
 
-    return defun_func;
+        return defun_func;
+    }
 }
 
 function parse_call(ast) {
@@ -557,41 +581,43 @@ function parse_prototype_ast(ast) {
 
 function parse_global_vars(ast) {
     var global_var_expr = walk_tree(ast);
-    var right_expr = global_var_expr.right_expr;
-    // Now we get the left expr and add its usage
-    var left_expr = global_var_expr.left_expr;
-    var left_expr_usage_obj = create_usage_object(left_expr.name, ast, left_expr.token.start.line);    
+    if (global_var_expr.name != "this") {
+        var right_expr = global_var_expr.right_expr;
+        // Now we get the left expr and add its usage
+        var left_expr = global_var_expr.left_expr;
+        var left_expr_usage_obj = create_usage_object(left_expr.name, ast, left_expr.token.start.line);    
     
-    if (GlobalIntellisenseRoot.is_defun_present(right_expr.name)) {
-        right_expr.type = "defun";
-    }
-    else if (GlobalIntellisenseRoot.is_global_var_present(right_expr.name)) {
-        right_expr.type = "global_var";
-    }       
+        if (GlobalIntellisenseRoot.is_defun_present(right_expr.name)) {
+            right_expr.type = "defun";
+        }
+        else if (GlobalIntellisenseRoot.is_global_var_present(right_expr.name)) {
+            right_expr.type = "global_var";
+        }       
     
-    left_expr.add_usage(left_expr_usage_obj, right_expr.type);
-    left_expr.type = "global_var";
+        left_expr.add_usage(left_expr_usage_obj, right_expr.type);
+        left_expr.type = "global_var";
 
-    // Set the value for the left expression.
-    left_expr.value = right_expr.value;
-    if (right_expr.type == "defun") {
-        left_expr.initial_data_type = "Function";
-        left_expr.value = right_expr.name;
-    }
-    else
-        left_expr.initial_data_type = right_expr.type;
+        // Set the value for the left expression.
+        left_expr.value = right_expr.value;
+        if (right_expr.type == "defun") {
+            left_expr.initial_data_type = "Function";
+            left_expr.value = right_expr.name;
+        }
+        else
+            left_expr.initial_data_type = right_expr.type;
 
-    GlobalIntellisenseRoot.add_obj("global_var", left_expr);
+        GlobalIntellisenseRoot.add_obj("global_var", left_expr);
     
-    // Look at the right side of the expression
-    if (right_expr.type == "composition") {
-        var right_expr_obj = factory(right_expr.name, "defun", type_function, right_expr.token, null, []);
-        GlobalIntellisenseRoot.add_variable_class_mapping(left_expr.name, right_expr.name);
-        GlobalIntellisenseRoot.add_obj("defun", right_expr);
-    }
+        // Look at the right side of the expression
+        if (right_expr.type == "composition") {
+            var right_expr_obj = factory(right_expr.name, "defun", type_function, right_expr.token, null, []);
+            GlobalIntellisenseRoot.add_variable_class_mapping(left_expr.name, right_expr.name);
+            GlobalIntellisenseRoot.add_obj("defun", right_expr);
+        }
 
-    // Indicate that a proper definition has been found for this.
-    GlobalIntellisenseRoot.add_distinct_global_var_definition_found(left_expr.name);
+        // Indicate that a proper definition has been found for this.
+        GlobalIntellisenseRoot.add_distinct_global_var_definition_found(left_expr.name);
+    }
 }
 
 function parse_assign(ast) {

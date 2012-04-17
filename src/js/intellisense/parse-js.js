@@ -795,8 +795,10 @@ function parse($TEXT, exigent_mode, embed_tokens) {
 
                     case "stat":
                         // Check if the ast is a prototype stmt or not.
-                        if (_is_['prototype'](ast)) {
-                            parse_prototype_ast(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            if (_is_['prototype'](ast)) {
+                                parse_prototype_ast(ast);
+                            }
                         }
 
                         break;
@@ -818,31 +820,45 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                         break;
 
                     case "for":
-                        parse_for_loop(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_for_loop(ast);
+                        }
                         break;
 
                     case "for-in":
-                        parse_for_loop(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_for_loop(ast);
+                        }
                         break;
 
                     case "while":
-                        parse_while_loop(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_while_loop(ast);
+                        }
                         break;
 
                     case "switch":
-                        parse_switch_case(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_switch_case(ast);
+                        }
                         break;
 
                     case "do":
-                        parse_while_loop(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_while_loop(ast);
+                        }
                         break;
 
                     case "try":
-                        parse_try_catch(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_try_catch(ast);
+                        }
                         break;
 
                     case "if":
-                        parse_if(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_if(ast);
+                        }
                         break;
 
                     case "catch":

@@ -11,7 +11,7 @@ function clean_defun_definitions_found() {
     // Now iterate through the list and find the global definitions
     for (key in GlobalIntellisenseRoot.get_global_classes()) {
         if (!GlobalIntellisenseRoot.is_distinct_defun_definition_present(key)) {
-            GlobalIntellisenseRoot.delete_global_var(key);
+            GlobalIntellisenseRoot.delete_defun(key);
         }
     }
 }

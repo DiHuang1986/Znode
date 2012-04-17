@@ -443,6 +443,7 @@ function create_usage_object(name, ast, line) {
 // Global Method for creating type_objects. Use this method only
 function factory(name, obj_type, constructor_call, token, parent, args) {
     var found = false;
+
     if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
         var obj = GlobalIntellisenseRoot.obj_dict[name];
         if (obj_type == "defun" || obj_type == "function") {
