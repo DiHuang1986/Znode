@@ -451,7 +451,7 @@ function factory(name, obj_type, constructor_call, token, parent, args) {
     if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
         var obj = GlobalIntellisenseRoot.obj_dict[name];
         if (obj_type == "defun" || obj_type == "function") {
-            if (!obj.isDefinitionEncountered()) {
+            if (!obj.isDefinitionEncountered() && args != null) {
                 obj.setArgs(args);
                 obj.walk_function();
             }

@@ -788,7 +788,11 @@ function parse($TEXT, exigent_mode, embed_tokens) {
 
                     case "assign":
                         if (this.entered_defun_stack.length == 0) {
-                            parse_assign(ast);
+                            if (_is_['prototype'](ast)) {
+                                parse_prototype_ast(ast);
+                            } else {
+                                parse_assign(ast);
+                            }
                         }
 
                         break;
