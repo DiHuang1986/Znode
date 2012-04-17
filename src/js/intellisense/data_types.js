@@ -416,6 +416,13 @@ function type_function_call() {
     this.args = [];
 }
 
+function type_conditional_expr() {
+    type_object.call(this);
+    this.expr = null;
+    this.result1 = null;
+    this.result2 = null;
+}
+
 function type_ignore() {
     type_object.call(this);
 }
@@ -432,6 +439,7 @@ type_block.prototype           = new type_object;
 type_try_catch.prototype       = new type_object;
 type_if_expr.prototype         = new type_object;
 type_function_call.prototype = new type_object;
+type_conditional_expr.prototype = new type_object;
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();

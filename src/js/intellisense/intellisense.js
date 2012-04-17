@@ -263,7 +263,7 @@ function walk_tree(ast) {
         "function": function () {
             var parent_clone = clone(this.parent);
             var func = factory(ast[1], "function", type_function, this.parent, null, ["function", ast[1], ["toplevel", [ast]], ast[2]]);
-            
+
             func.token = parent_clone;
             return func;
         },
@@ -329,7 +329,7 @@ function walk_tree(ast) {
             return binary_expr;
         },
 
-        "unary-prefix": function() {
+        "unary-prefix": function () {
             var unary_expr = new type_unary_expr();
             unary_expr.type = "unary_expr";
             unary_expr.name = ast[2][1];
@@ -339,17 +339,17 @@ function walk_tree(ast) {
             return unary_expr;
         },
 
-        "unary-postfix": function() {
+        "unary-postfix": function () {
             var unary_expr = new type_unary_expr();
             unary_expr.type = "unary_expr";
             unary_expr.name = ast[2][1];
             unary_expr.unary = ast[1];
             unary_expr.token = this.parent;
             unary_expr.ast = ast;
-            return unary_expr;              
+            return unary_expr;
         },
 
-        "for" : function() {
+        "for": function () {
             var for_expr = new type_for_loop();
             for_expr.loop_var1 = walk_tree(ast[1]);
             for_expr.binary_expr = walk_tree(ast[2]);
@@ -364,7 +364,7 @@ function walk_tree(ast) {
             return for_expr;
         },
 
-        "for-in" : function() {
+        "for-in": function () {
             var for_expr = new type_for_loop();
             for_expr.type = "for-in";
             for_expr.loop_var1 = walk_tree(ast[1]);
@@ -376,7 +376,7 @@ function walk_tree(ast) {
             return for_expr;
         },
 
-        "block" : function() {
+        "block": function () {
             var block_expr = new type_block();
             block_expr.type = "block_expr";
 
@@ -390,7 +390,7 @@ function walk_tree(ast) {
             return block_expr;
         },
 
-        "if": function () { 
+        "if": function () {
             var if_expr = new type_if_expr();
             if_expr.type = "if_expr";
             if_expr.token = this.parent;
@@ -398,7 +398,7 @@ function walk_tree(ast) {
             if_expr.binary_expr = walk_tree(ast[1]);
 
             var serialized_list = [];
-            if (if_expr.binary_expr.type == "binary_expr") 
+            if (if_expr.binary_expr.type == "binary_expr")
                 if_expr.binary_expr = serialize_binary_expr(if_expr.binary_expr, serialized_list);
 
             var block = walk_tree(ast[2]);
@@ -426,29 +426,29 @@ function walk_tree(ast) {
 
             while_expr.ast = ast;
 
-            return while_expr;            
+            return while_expr;
         },
 
-        "while": function () { 
+        "while": function () {
             var while_expr = new type_while_loop();
             while_expr.type = "while_loop";
-            
+
             while_expr.binary_expr = walk_tree(ast[1]);
             var serialized_list = [];
             if (while_expr.binary_expr.type == "binary_expr")
                 while_expr.binary_expr = serialize_binary_expr(while_expr.binary_expr, serialized_list);
 
             var block_expr = walk_tree(ast[2]);
-    
+
             while_expr.block = block_expr.lines;
             while_expr.token = this.token;
 
             while_expr.ast = ast;
 
-            return while_expr; 
+            return while_expr;
         },
 
-        "switch": function () { 
+        "switch": function () {
             var switch_expr = new type_switch_case();
             switch_expr.type = "switch_case";
             switch_expr.switch_var = walk_tree(ast[1]);
@@ -474,7 +474,7 @@ function walk_tree(ast) {
             var sub_expr = new type_array_subscript();
             sub_expr.array = array_obj;
             sub_expr.subscript = array_subscript;
-            
+
             sub_expr.name = array_obj.name;
             sub_expr.token = this.parent;
             sub_expr.type = "array_subscript";
@@ -482,24 +482,35 @@ function walk_tree(ast) {
             return sub_expr;
         },
 
-        "break" : function() {
+        "break": function () {
             var ignore = new type_ignore();
             ignore.type = "ignore";
             ignore.name = "ignore";
             return ignore;
         },
 
-        "array" : function () {
+        "array": function () {
             var ignore = new type_ignore();
             ignore.type = "ignore";
             ignore.name = "ignore";
-            return ignore;            
+            return ignore;
         },
 
-        "try" : function() {
+        "conditional": function () {
+            var conditional_expr = new type_conditional_expr();
+            conditional_expr.type = "conditional_expr";
+            conditional_expr.expr = walk_tree(ast[1]);
+            conditional_expr.results1 = walk_tree(ast[2]);
+            conditional_expr.results2 = walk_tree(ast[3]);
+
+            conditional_expr.token = this.parent;
+            return conditional_expr;
+        },
+
+        "try": function () {
             var try_expr = new type_try_catch();
             try_expr.type = "try_catch";
-            
+
             for (var j = 1; j < 3; ++j) {
                 for (var i = 0; i < ast[1].length; ++i) {
                     try_expr.block.push(walk_tree(ast[1][i]));
@@ -511,6 +522,13 @@ function walk_tree(ast) {
 
             return try_expr;
         },
+
+        "throw": function () {
+            var ignore = new type_ignore();
+            ignore.type = "ignore";
+            ignore.name = "ignore";
+            return ignore;
+        }
     }
     
     this.parent = ast[0];
@@ -525,8 +543,9 @@ function walk_tree(ast) {
 
     // Debug Code... If we encounter something for which we haven't speculated yet. Lets see it
     var myImplementedList = ["binary", "num", "string", "return", "defun", "call", "function", "new", "name",
-                             "dot", "stat", "var", "assign", "if", "do", "while", "switch", "case", "sub", 
-                             "unary-prefix", "for", "block", "break", "try", "for-in", "array"];
+                             "dot", "stat", "var", "assign", "if", "do", "while", "switch", "case", "sub",
+                             "unary-prefix", "unary-postfix", "for", "block", "break", "try", "for-in", "array",
+                             "conditional", "throw"];
 
     if (myImplementedList.indexOf(token_str) == -1)
         alert("Unimplemented token: " + token_str);
