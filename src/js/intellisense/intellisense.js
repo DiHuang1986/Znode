@@ -604,10 +604,10 @@ function parse_prototype_ast(ast) {
     var inherited_class = factory(left_expr.name, "defun", type_function, prototype_expr.token, null, null);
     var base_class = factory(right_expr.name, "defun", type_function, prototype_expr.token, null, null);
 
-    inherited_class.super_classes.push(base_class.name);
+    inherited_class.add_super_class(base_class.name);
     inherited_class.add_usage(left_usage_obj, "Prototype");
     
-    base_class.sub_classes.push(inherited_class.name);
+    base_class.add_sub_class(inherited_class.name);
     base_class.add_usage(right_usage_obj, "Prototype");
     
     return prototype_expr;

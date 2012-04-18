@@ -632,6 +632,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     html = html + "<td><center>" + code_str + "</center></td><tr>";
                 }
 
+                $("pre.source_code").snippet("javascript", { style: "bright", transparent: true, showNum: true });
                 $("#usageViewTableBody").append(html);                
                 $("#UsageViewPopup").modal('show');
             });
@@ -667,7 +668,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#source_body").empty();
             $("#source_body").append('<pre class="source_code"></pre>');
             $(".source_code").append(src);
-            $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
+            $("pre.source_code").snippet("javascript", { style: "bright", transparent: true, showNum: true });
             $("#SourceViewPopup").modal('show');
         });
 
@@ -808,6 +809,98 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                 composition.tooltip('hide');
             }
+
+            // Add the view for showing Detailed data members
+            if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("data_members") + "' width=15 height=15 src='img/data_members.png' rel='tooltip' title='Data Members'><\/img>");
+            var data_members = $("#" + this.getHtmlIdName("data_members"));
+            data_members.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 85,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            data_members.tooltip('hide');
+        }
+
+        data_members.click( function(event) {
+            var orig_node = get_node_from_id(graph, event.target.id);            
+            var obj = orig_node.getIntellisenseObj();
+            $("#DataMemberViewTableBody1").empty();
+            $("#DataMemberViewTableBody2").empty();
+
+            var inherited_member_list = obj.get_inherited_members();
+
+            var count = 0;
+            var html = "";
+            // Display all the inherited data members
+            for (var key in inherited_member_list) {
+                var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                var usage_obj = tempObj.get_usage();
+                
+                var row_span = count_dictionary_items(usage_obj);
+                html = html + "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
+                    
+                var type = tempObj.type;
+                html = html + "<td><center>" + type + "</center></td>";
+                
+                html += "<td>";
+
+                for (var key in usage_obj) {
+                    var color = "Brown";
+                    if (count % 2 == 0) color = "Indigo";
+                    var code_str = usage_obj[key][1].get_code_string();
+                    html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                    ++count;
+                }
+
+                html += "</td>";
+            }
+
+            $("#DataMemberViewTableBody1").append(html);
+
+            html = "";
+            var count = 0;
+            // Display all the class data members
+            var member_list = obj.get_class_members("all");
+
+            for (var key in member_list) {
+                var usage_obj = member_list[key].get_usage();
+                
+                var row_span = count_dictionary_items(usage_obj);
+                html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + key + "</center></td>";
+                    
+                var type = member_list[key].type;
+                html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
+
+                html += "<td>";
+
+                for (var key in usage_obj) {
+                    var color = "Brown";
+                    if (count % 2 == 0) color = "Indigo";
+                    var code_str = usage_obj[key][1].get_code_string();
+                    html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                    ++count;
+                }
+
+                html += "</td>";
+            }
+
+            $("#DataMemberViewTableBody2").append(html);
+            $("#DataMembersPopup").modal('show');
+        });
         }
 
         // var total_height = nodeHeight - bar.height() - 8;
@@ -882,11 +975,11 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             // Now populate the members of the class into the data content
             $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
             }
-			else if (intellisense_obj != null && intellisense_obj.type == "global_var") {
+            else if (intellisense_obj != null && intellisense_obj.type == "global_var") {
                 var str = "Initial Data Definition: " + this.getIntellisenseObj().initial_data_type;
                 str += "\nInitial Value: " + this.getIntellisenseObj().value;
-				$("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
-			}
+                $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
+            }
 
         }
 

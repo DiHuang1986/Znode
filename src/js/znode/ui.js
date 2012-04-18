@@ -54,7 +54,7 @@ $(function () {
         alert("Open a menu with list of class name.");
     });
 
-	$('#resource_view').click(function () {
+    $('#resource_view').click(function () {
         $('#OpenResourceView').modal('show');		
     });
 
@@ -342,23 +342,23 @@ function readFiles() {
     var reader = new FileReader();
 
     // If we use onloadend, we need to check the readyState.
-	reader.onloadend = (function(f){
-		return function(evt){
-			if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-				var typeLowerCase = f.type.toLowerCase();
-				globalCode = evt.target.result;
+    reader.onloadend = (function(f){
+        return function(evt){
+            if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+                var typeLowerCase = f.type.toLowerCase();
+                globalCode = evt.target.result;
 
-				// if the file is any sort of html file, don't let it through the
-				// parser rather add it to the resoure window				
-				if (typeLowerCase.indexOf("html") != -1) {
-					parseHtmlFile(f, globalCode);
-				}
-				else {
-					parseInit(globalCode, "#OpenJavascriptPopup");           
-				}
-			}
-		};
-	})(f);
+                // if the file is any sort of html file, don't let it through the
+                // parser rather add it to the resoure window				
+                if (typeLowerCase.indexOf("html") != -1) {
+                    parseHtmlFile(f, globalCode);
+                }
+                else {
+                    parseInit(globalCode, "#OpenJavascriptPopup");           
+                }
+            }
+        };
+    })(f);
     
     reader.readAsText(f);
   }
@@ -367,47 +367,47 @@ function readFiles() {
 function parseHtmlFile(file, htmlFileCode){
 
      var lines = htmlFileCode.split("\r"); // Will separate each line into an array
-	 var i;
-	 var line;
-	 var lineLowerCase
-	 var count = 0;	 
+     var i;
+     var line;
+     var lineLowerCase
+     var count = 0;	 
     
-	 for (i = 0; i < lines.length; i++){
+     for (i = 0; i < lines.length; i++){
 
-		var htmlCode = "";
-		line = lines[i].toString(); 
-		lineLowerCase = line.toLowerCase();
+        var htmlCode = "";
+        line = lines[i].toString(); 
+        lineLowerCase = line.toLowerCase();
         
-		// <link rel="stylesheet" href="css/jquery.snippet.css" />
-	    if ((lineLowerCase.indexOf("link") !=-1) && (lineLowerCase.indexOf("href") !=-1)){
-			var index = line.indexOf("href");
-			var string2 = line.substring(index+6);
-			var index2 = string2.indexOf("\"");
-			var resource = line.substring((index+6), (index+6)+index2);
-			
-			htmlCode = "<tr><td><center>" + file.name + "</center></td>";
-			htmlCode = htmlCode + "<td><center>" + i + "</center></td>";
-			htmlCode = htmlCode + "<td><center>" + resource + "</center></td>";			
-			
-			count++;
-			
-			$("#resourceViewTableBody").append(htmlCode);
-		}
-		// <script type="text/javascript" src="js/libs/jquery-1.7.1.min.js"></script>
-		else if ((lineLowerCase.indexOf("script") !=-1) && (lineLowerCase.indexOf("src") !=-1)){
-			var index = line.indexOf("src");
-			var string2 = line.substring(index+5);
-			var index2 = string2.indexOf("\"");
-			var resource = line.substring((index+5), (index+5)+index2);
-			htmlCode = "<tr><td><center>" + file.name + "</center></td>";
-			htmlCode = htmlCode + "<td><center>" + i + "</center></td>";
-			htmlCode = htmlCode + "<td><center>" + resource + "</center></td>";			
+        // <link rel="stylesheet" href="css/jquery.snippet.css" />
+        if ((lineLowerCase.indexOf("link") !=-1) && (lineLowerCase.indexOf("href") !=-1)){
+            var index = line.indexOf("href");
+            var string2 = line.substring(index+6);
+            var index2 = string2.indexOf("\"");
+            var resource = line.substring((index+6), (index+6)+index2);
+            
+            htmlCode = "<tr><td><center>" + file.name + "</center></td>";
+            htmlCode = htmlCode + "<td><center>" + i + "</center></td>";
+            htmlCode = htmlCode + "<td><center>" + resource + "</center></td>";			
+            
+            count++;
+            
+            $("#resourceViewTableBody").append(htmlCode);
+        }
+        // <script type="text/javascript" src="js/libs/jquery-1.7.1.min.js"></script>
+        else if ((lineLowerCase.indexOf("script") !=-1) && (lineLowerCase.indexOf("src") !=-1)){
+            var index = line.indexOf("src");
+            var string2 = line.substring(index+5);
+            var index2 = string2.indexOf("\"");
+            var resource = line.substring((index+5), (index+5)+index2);
+            htmlCode = "<tr><td><center>" + file.name + "</center></td>";
+            htmlCode = htmlCode + "<td><center>" + i + "</center></td>";
+            htmlCode = htmlCode + "<td><center>" + resource + "</center></td>";			
 
-			count++;
-			
-			$("#resourceViewTableBody").append(htmlCode);
-		}
-	 }
+            count++;
+            
+            $("#resourceViewTableBody").append(htmlCode);
+        }
+     }
 }
 
 function parseInit(code, node_str) {

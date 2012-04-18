@@ -80,9 +80,9 @@ function type_function() {
         this.source_code = gen_code(this.ast, { beautify: true });
     else
         this.source_code = "";
-    
+
     this.super_classes = [];
-    this.sub_classes   = [];
+    this.sub_classes = [];
     
     this.classes_where_composed = {};
     this.classes_this_composes = {};
@@ -141,8 +141,43 @@ function type_function() {
         }
     }
 
+    this.add_super_class = function (class_name) {
+        if (this.super_classes.indexOf(class_name) == -1)
+            this.super_classes.push(class_name);
+    }
+
+    this.add_sub_class = function (class_name) {
+        if (this.sub_classes.indexOf(class_name) == -1)
+            this.sub_classes.push(class_name);
+    }
+
     this.get_dependencies = function () {
         return this.dependencies;
+    }
+
+    this.get_inherited_members = function (inherited_member_list) {
+        // Look at all the super classes. this will be a recursive process
+        // The initial function call will be an empty list
+        if (Introspect.typeOf(inherited_member_list) == "undefined") {
+            var initial_data_call = true;
+            inherited_member_list = {};
+        }
+
+        for (var i= 0; i < this.super_classes.length; ++i) {
+            var super_class_name = this.super_classes[i];
+            var super_class_obj = GlobalIntellisenseRoot.get_single_defun(super_class_name);
+            inherited_member_list = super_class_obj.get_inherited_members(inherited_member_list);
+        }
+
+        // Now concat its own data if this is not an initial data call
+        if (Introspect.typeOf(initial_data_call) == "undefined") {
+            var class_members = this.get_class_members("all");
+            for (var key in class_members) {
+                inherited_member_list[key] = GlobalIntellisenseRoot.get_from_global_dict(key);
+            }
+        }
+
+        return inherited_member_list;
     }
 
     // type choices: 
