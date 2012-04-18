@@ -13,6 +13,10 @@ var topHeight = 0;
 var main_canvas_width = 0;
 var main_canvas_height = 0;
 
+//===========
+var inheritanceClassLvl=[];
+//===========
+
 function initialize() {
     topHeight = $("#top_toolbar").height();
     main_canvas_width = win.width();
@@ -1117,6 +1121,71 @@ while(curDate-date < millis);
             nodes[i].remove();
         }
     }
+
+    //==========================Inheritance Tree======================================
+    this.generateInheritanceTree = function () {
+        var intellisense = GlobalIntellisenseRoot;
+        var inheritanceNodeHeight = 70;
+        var inheritanceNodeWidth = 150;
+        var classLvl;
+        //inheritanceClassLvl = [];
+
+        for(var key in intellisense.defun) {
+            classLvl = 0;
+
+            var currentClassObj = intellisense.defun[key];
+            var curClassObj = currentClassObj;
+            var supClassName;
+            if(curClassObj.super_classes)
+                supClassName = curClassObj.super_classes[0];
+
+            while (supClassName) {
+                curClassObj = get_class_obj(supClassName);
+                supClassName = curClassObj.super_classes[0];
+                classLvl ++;
+            }
+
+            if(!inheritanceClassLvl[classLvl]) {
+                inheritanceClassLvl[classLvl] =[];
+                inheritanceClassLvl[classLvl].push(currentClassObj);
+            } else {
+                inheritanceClassLvl[classLvl].push(currentClassObj);
+            }
+        }
+
+        var startx = 50; var starty = 50;
+        for (var i = 0; i < inheritanceClassLvl.length; i++) {
+            for(var j = 0; j < inheritanceClassLvl[i].length; j++) {
+                var obj = inheritanceClassLvl[i][j];
+                var node = this.addNode(startx+j*1.5*inheritanceNodeWidth, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                node_name_id_mapping[obj.name] = node.getID();
+                var str = "";
+                try {
+                    var class_members = obj.get_class_members("all");
+                    str = class_members_to_string(class_members);
+                } catch(e) { }
+
+                node.txt[0].value = str;
+
+                node.txt[0].focus();
+                currentNode = node;
+            }
+        }
+
+        for (var key in intellisense.defun) {
+            var obj = intellisense.defun[key];
+            var node = this.getNodeFromName(obj.name);
+
+            if (obj.super_classes) {
+                for (var i = 0; i < obj.super_classes.length; ++i) {
+                    var parent_class_name = obj.super_classes[i];
+                    var parent_node = this.getNodeFromName(parent_class_name);
+                    createConnection(node, "top", parent_node, "bottom", "inheritance");
+                }
+            }
+        }
+    }
+    //========================end of Inheritance Tree====================================
 
 
     this.clearAll = function() {

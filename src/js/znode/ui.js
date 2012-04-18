@@ -153,7 +153,12 @@ $(function () {
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');
     });
-
+    //===============inheritance View
+    $('#inheritance_view').click(function() {
+        graph.clearAll();
+        graph.generateInheritanceTree();
+    });
+    //===============end of inheritance view
     $("#parse_button").click(function () {
         // We should now take the code and parse it.
         var code = $("#textarea_code").val();
