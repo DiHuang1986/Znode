@@ -22,5 +22,6 @@ function wall2()
 function brick()
 {
     this.brickFunction = function() { return "this is a brick"; }
+    this.brickFunction2 = function() {return "this is another function";}
     return true;
 }

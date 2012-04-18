@@ -65,12 +65,10 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
-        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
             classCount++;
         }
-        if (classCount == 0) classNames.append("<div class='className'>" + "No classes to display" + "<\/div>");
     });
     
     $('#function_view').click(function () {
@@ -78,11 +76,9 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
-        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='classNameFun'>" + key + "<\/div>");
         }
-        if (classCount == 0) classNames.append("<div class='classNameFun'>" + "No classes to display" + "<\/div>");
     });
 
     $("#save").click(saveFile);
@@ -210,10 +206,16 @@ $(function () {
         var functionCalls = $('#functionCalls');
         functionCalls.html(''); // clear the top element
         openFunc.fadeIn();
+        
         // Display all the function calls.
-        functionCalls.append("<div class='functionsList'>" + "test" + "<\/div>")
-        
-        
+        var class_name = $(e.target).html();
+        var obj = GlobalIntellisenseRoot.defun[class_name];
+        var class_members = obj.get_class_members("all");
+        for (member in class_members) {
+            if (class_members[member][0]['type'] == 'function') {
+                functionCalls.append("<div class='functionsList'>" + member + "<\/div>")
+            }
+        }
     }).live('mouseover', function () {
         $(this).css({
             "background-color": "#ededed"
@@ -226,8 +228,8 @@ $(function () {
     
     
     // an even handler for the function calls list.
-    $('.functionsList').live('click', function() {
-        alert('clicked');
+    $('.functionsList').live('click', function(e) {
+        alert('You selected ' + $(e.target).html());
     }).live('mouseover', function () {
         $(this).css({
             "background-color": "#ededed"
