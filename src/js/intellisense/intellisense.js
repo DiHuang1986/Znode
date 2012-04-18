@@ -733,7 +733,7 @@ function populate_function_calls(call_expr) {
 
         if (defunObj.class_members.hasOwnProperty(internal_func_name)) {
             var internal_func_obj = GlobalIntellisenseRoot.get_from_global_dict(internal_func_name);
-            internal_func_obj.add_usage("Function Call", usage);
+            internal_func_obj.add_usage(usage, "Function Call");
         }
     }
 }

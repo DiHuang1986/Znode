@@ -317,7 +317,7 @@ function type_function() {
                         if (expr.name == "this") {
                             // We are going to handle this locally
                             var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
-                            func_obj.add_usage("Function Call", expr);
+                            func_obj.add_usage(expr, "Function Call");
                         } else {
                             populate_function_calls(expr);
                         }
@@ -338,7 +338,7 @@ function type_function() {
                                 if (block_expr.type == "call") {
                                     if (block_expr.name == "this") {
                                         var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
-                                        func_obj.add_usage("Function Call", block_expr);
+                                        func_obj.add_usage(block_expr, "Function Call");
                                     } else {
                                         populate_function_calls(block_expr);
                                     }
