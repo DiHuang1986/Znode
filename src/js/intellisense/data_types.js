@@ -400,7 +400,7 @@ function type_usage() {
     this.code_str = "";
     this.line = -1;
 
-    this.get_code_string = function () { return this.code_str; }
+    this.get_code_string = function () { return GlobalIntellisenseRoot.source[this.line]; }
     this.get_line_number = function () { return this.line; }
 }
 
@@ -551,6 +551,7 @@ function global_node() {
     this.distinct_global_var_definition_found = {}; // For global variables
     this.distinct_defun_found = {};
     this.variable_class_mapping = {};               // For global variables holding composition.
+    this.source_code = "";
 
     this.scratch_class_mapping = {};                // Used by internal functions
 

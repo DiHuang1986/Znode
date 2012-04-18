@@ -876,7 +876,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         var usage_obj = tempObj.get_usage();
                 
                         var row_span = count_dictionary_items(usage_obj);
-                        html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
+                        html += "<tr><td style='color:blue;font-weight:bold'><center>" + split_name(key) + "</center></td>";
                     
                         html += "<td style='color:blue;font-weight:bold'><center>" + inherited_class + "</center></td>";
 
@@ -927,7 +927,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     var usage_obj = member_list[key].get_usage();
                 
                     var row_span = count_dictionary_items(usage_obj);
-                    html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + key + "</center></td>";
+                    html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + split_name(key) + "</center></td>";
                     
                     var type = member_list[key].type;
                     html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
@@ -977,7 +977,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         var row_span = count_dictionary_items(usage_obj);
                         html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
                     
-                        html += "<td style='color:blue;font-weight:bold'><center>" + composition_class + "</center></td>";
+                        html += "<td style='color:blue;font-weight:bold'><center>" + split_name(composition_class) + "</center></td>";
 
                         var type = tempObj.type;
                         html += "<td><center>" + type + "</center></td>";

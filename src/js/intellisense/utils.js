@@ -117,3 +117,7 @@ function count_dictionary_items(dict) {
 
     return count;
 }
+
+function split_name(qualified_name) {
+    return qualified_name.split(".")[1];
+}

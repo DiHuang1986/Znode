@@ -47,6 +47,8 @@ function generate_intellisense(code) {
     clean_global_definitions_found();
 
     clean_defun_definitions_found();
+
+    GlobalIntellisenseRoot.source = code.split("\n");
     
     return GlobalIntellisenseRoot;
 }
