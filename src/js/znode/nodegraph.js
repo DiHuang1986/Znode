@@ -847,6 +847,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             var count = 0;
             var color = "";
 
+            $("#DataMembersPopup").css({ width: win.width() - 300, top: 300, left: 400 });
+
             var inherited_member_list = obj.get_inherited_members();
             var inherited_member_list_count = count_dictionary_items(inherited_member_list);
 
