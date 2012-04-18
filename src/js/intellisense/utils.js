@@ -89,6 +89,8 @@ function getTokenDisplayName(token_name) {
             return "Globals";
             break;
     }
+
+    return token_name;
 }
 
 // Returns the name & type of the object
@@ -100,4 +102,9 @@ function class_members_to_string(class_members) {
     }
 
     return str;
+}
+
+function clone(orig_obj) {
+    var clone = jQuery.extend(true, {}, orig_obj);
+    return clone;
 }

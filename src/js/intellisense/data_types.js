@@ -16,6 +16,7 @@ function type_object() {
     this.value = null;
     this.token = null;
     this.initial_data_type = null; // Only valid for variables
+    this.ast = null;
     this.usage = {};
     
     this.toString = function() {
@@ -87,8 +88,12 @@ function type_function() {
     this.classes_this_composes = {};
     
     this.dependencies = {};
-    
-    this.class_members  = {};
+
+    this.class_members = {};
+
+    this.variable_class_mapping = {}; // From composition we want to store a list of
+                                      // variables which compose some class in order to call
+                                      // functions from it.
        
     this.add_classes_where_composed = function(name, obj) {
         if (!this.classes_where_composed.hasOwnProperty(name)) {
@@ -132,10 +137,7 @@ function type_function() {
     
     this.add_class_member = function(class_obj) {
         if (!this.is_class_member_present(class_obj.name)) {
-            this.class_members[class_obj.name] = [class_obj];
-        }
-        else {
-            this.class_members[class_obj.name].push(class_obj);
+            this.class_members[class_obj.name] = class_obj;
         }
     }
 
@@ -191,6 +193,7 @@ function type_function() {
 
         for (var i = 0; i < code_ast.length; ++i) {
             var expr = walk_tree(code_ast[i]);
+            create_global_vars(expr);
 
             if (expr != null) {
                 switch (expr.type) {
@@ -220,6 +223,7 @@ function type_function() {
 
                             class_composed.add_classes_where_composed(this.name, this);
                             this.add_dependency(right_expr.name);
+                            GlobalIntellisenseRoot.scratch_class_mapping[left_expr_name] = right_expr_name;
                         }
 
                         var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
@@ -264,10 +268,41 @@ function type_function() {
                         break;
 
                     case "call":
-                        // Find if the called function has been defined before or not.
-                        // If not then add it to unmet dependencies.
-                        var call_expr = expr;
+                        if (expr.name == "this") {
+                            // We are going to handle this locally
+                            var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+                            func_obj.add_usage("Function Call", expr);
+                        } else {
+                            populate_function_calls(expr);
+                        }
                         break;
+
+                    case "for-in":
+                    case "for_loop":
+                    case "while_loop":
+                    case "switch_case":
+                    case "try_catch":
+                    case "if_expr":
+                    case "function":
+                        var block = expr.block;
+
+                        if (block.type == "block_expr") {
+                            for (var kcounter = 0; kcounter < block.length; ++kcounter) {
+                                var block_expr = block[kcounter];
+                                if (block_expr.type == "call") {
+                                    if (block_expr.name == "this") {
+                                        var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
+                                        func_obj.add_usage("Function Call", block_expr);
+                                    } else {
+                                        populate_function_calls(block_expr);
+                                    }
+                                }
+                            }
+                        } else {
+                           // Need to see if we need it now.
+                        }
+
+                        break
 
                     case "sub":
                         var array_sub_expr = expr;
@@ -311,8 +346,8 @@ function assign_expression() {
 function binary_expression() {
     type_object.call(this);    
     this.operator = "";
-    this.binary_lhs = null;
-    this.binary_rhs = null;
+    this.left_expr = null;
+    this.right_expr = null;
 }
 
 function type_usage() {
@@ -333,11 +368,78 @@ function type_array_subscript() {
     this.subscript = null;
 }
 
+function type_unary_expr() {
+    type_object.call(this);
+    this.unary = "";
+}
+
+function type_for_loop() {
+    type_object.call(this);
+    this.loop_var1 = null;
+    this.loop_var2 = null;
+    this.binary_expr = null;
+    this.increment_decrement = null;
+    this.block = [];
+}
+
+function type_while_loop() {
+    type_object.call(this);
+    this.binary_expr = null;
+    this.block = [];
+}
+
+function type_switch_case() {
+    type_object.call(this);
+    this.switch_var = null;
+    this.block = [];
+}
+
+function type_if_expr() {
+    type_object.call(this);
+    this.binary_expr = null;
+    this.block = [];
+}
+
+function type_try_catch() {
+    type_object.call(this);
+    this.block = [];
+}
+
+function type_block() {
+    type_object.call(this);
+    this.lines = [];
+}
+
+function type_function_call() {
+    type_object.call(this);
+    this.called_obj = null;
+    this.args = [];
+}
+
+function type_conditional_expr() {
+    type_object.call(this);
+    this.expr = null;
+    this.result1 = null;
+    this.result2 = null;
+}
+
+function type_ignore() {
+    type_object.call(this);
+}
+
+
 type_expression.prototype      = new type_object;
 assign_expression.prototype    = new type_object;
 binary_expression.prototype    = new type_object;
 type_function_call.prototype   = new type_object;
 type_array_subscript.prototype = new type_object;
+type_unary_expr.prototype      = new type_object;
+type_for_loop.prototype        = new type_object;
+type_block.prototype           = new type_object;
+type_try_catch.prototype       = new type_object;
+type_if_expr.prototype         = new type_object;
+type_function_call.prototype = new type_object;
+type_conditional_expr.prototype = new type_object;
 
 function create_usage_object(name, ast, line) {
     var usage_obj = new type_usage();
@@ -353,10 +455,11 @@ function create_usage_object(name, ast, line) {
 // Global Method for creating type_objects. Use this method only
 function factory(name, obj_type, constructor_call, token, parent, args) {
     var found = false;
+
     if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
         var obj = GlobalIntellisenseRoot.obj_dict[name];
         if (obj_type == "defun" || obj_type == "function") {
-            if (!obj.isDefinitionEncountered()) {
+            if (!obj.isDefinitionEncountered() && args != null) {
                 obj.setArgs(args);
                 obj.walk_function();
             }
@@ -398,6 +501,11 @@ function global_node() {
     this.obj_dict = {};
     this.defun = {};
     this.global_vars = {};
+    this.distinct_global_var_definition_found = {}; // For global variables
+    this.distinct_defun_found = {};
+    this.variable_class_mapping = {};               // For global variables holding composition.
+
+    this.scratch_class_mapping = {};                // Used by internal functions
 
     this._add_global_var = function (global_var_name, global_var_obj) {
         this.global_vars[global_var_name] = global_var_obj;
@@ -410,15 +518,45 @@ function global_node() {
     this.add_obj = function (obj_type, obj) {
         switch (obj_type) {
             case "global_var":
+                obj.type = "global_var";
                 this._add_global_var(obj.name, obj);
                 this.add_to_object_dictionary(obj.name, obj);
                 break;
 
             case "defun":
+                obj.type = "defun";
                 this._add_global_func(obj.name, obj);
                 this.add_to_object_dictionary(obj.name, obj);
                 break;
         }
+    }
+
+    this.add_distinct_defun_definition_found = function (name) {
+        this.distinct_defun_found[name] = true;
+    }
+
+    this.add_distinct_global_var_definition_found = function(name) {
+        this.distinct_global_var_definition_found[name] = true;
+    }
+
+    this.is_distinct_defun_definition_present = function(name) {
+        return this.distinct_defun_found.hasOwnProperty(name);
+    }
+
+    this.is_distinct_global_var_definition_present = function (name) {
+        return this.distinct_global_var_definition_found.hasOwnProperty(name);
+    }
+
+    this.get_variable_class_mapping = function (name) {
+        return this.variable_class_mapping[name];
+    }
+
+    this.is_variable_class_mapping_defined = function(name) {
+        return this.variable_class_mapping.hasOwnProperty(name);
+    }
+
+    this.add_variable_class_mapping = function (var_name, class_name) {
+        this.variable_class_mapping[var_name] = class_name;
     }
 
     this.get_single_defun = function (name) {
@@ -435,6 +573,18 @@ function global_node() {
 
     this.is_defun_present = function (name) {
         return this.defun.hasOwnProperty(name);
+    }
+
+    this.delete_global_var = function (name) {
+        if (this.global_vars.hasOwnProperty(name)) {
+            delete this.global_vars[name];
+        }
+    }
+
+    this.delete_defun = function (name) {
+        if (this.defun.hasOwnProperty(name)) {
+            delete this.defun[name];
+        }
     }
 
     // Names stored in Global Object dictionary. This will

@@ -780,16 +780,29 @@ function parse($TEXT, exigent_mode, embed_tokens) {
 
                 switch (ast[0].name) {
                     case "defun":
-                        parse_defun(arguments[1], ast);
+                        // Clear the scratch class mapping
+                        GlobalIntellisenseRoot.scratch_class_mapping = {};
+                        parse_defun(ast);
                         this.entered_defun_stack.pop();
-                        if (this.entered_defun_stack.length > 0)
-                            alert("This is an error. We shouldn't be hitting this");
+                        break;
+
+                    case "assign":
+                        if (this.entered_defun_stack.length == 0) {
+                            if (_is_['prototype'](ast)) {
+                                parse_prototype_ast(ast);
+                            } else {
+                                parse_assign(ast);
+                            }
+                        }
+
                         break;
 
                     case "stat":
                         // Check if the ast is a prototype stmt or not.
-                        if (_is_['prototype'](ast)) {
-                            parse_prototype_ast(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            if (_is_['prototype'](ast)) {
+                                parse_prototype_ast(ast);
+                            }
                         }
 
                         break;
@@ -805,7 +818,54 @@ function parse($TEXT, exigent_mode, embed_tokens) {
                         break;
 
                     case "call":
-                        parse_call(ast);
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_call(ast);
+                        }
+                        break;
+
+                    case "for":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_for_loop(ast);
+                        }
+                        break;
+
+                    case "for-in":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_for_loop(ast);
+                        }
+                        break;
+
+                    case "while":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_while_loop(ast);
+                        }
+                        break;
+
+                    case "switch":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_switch_case(ast);
+                        }
+                        break;
+
+                    case "do":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_while_loop(ast);
+                        }
+                        break;
+
+                    case "try":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_try_catch(ast);
+                        }
+                        break;
+
+                    case "if":
+                        if (this.entered_defun_stack.length == 0) {
+                            parse_if(ast);
+                        }
+                        break;
+
+                    case "catch":
                         break;
                 }
 

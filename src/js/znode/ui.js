@@ -26,7 +26,7 @@ $(function () {
 
     var openComp = $('#openComp');
     openComp.hide();
-    
+
     var openFunc = $('#openFunc');
     openFunc.hide();
 
@@ -70,7 +70,7 @@ $(function () {
             classCount++;
         }
     });
-    
+
     $('#function_view').click(function () {
         var classNames = $('#classNames');
         classNames.html(''); // clear the top element
@@ -200,8 +200,8 @@ $(function () {
             "background-color": "white"
         });
     });
-    
-    $('.classNameFun').live('click', function(e) {
+
+    $('.classNameFun').live('click', function (e) {
         // open the function call window
         var functionCalls = $('#functionCalls');
         functionCalls.html(''); // clear the top element
@@ -225,8 +225,8 @@ $(function () {
             "background-color": "white"
         });
     });
-    
-    
+
+
     // an even handler for the function calls list.
     $('.functionsList').live('click', function(e) {
         alert('You selected ' + $(e.target).html());
@@ -239,7 +239,7 @@ $(function () {
             "background-color": "white"
         });
     });
-    
+
 
     $('.className').live('click', function (e) {
         var class_name = $(e.target).html();
