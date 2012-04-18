@@ -1,6 +1,7 @@
 var graph;
 var main_canvas_id = "main_canvas";
 var secondary_canvas_id = "secondary_canvas";
+var g_class_name;
 
 $(function () {
     initialize();
@@ -62,12 +63,10 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
-        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
             classCount++;
         }
-        if (classCount == 0) classNames.append("<div class='className'>" + "No classes to display" + "<\/div>");
     });
 
     $('#function_view').click(function () {
@@ -75,11 +74,9 @@ $(function () {
         classNames.html(''); // clear the top element
         openComp.fadeIn();
         // Loop through all the global classes found.
-        var classCount = 0;
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='classNameFun'>" + key + "<\/div>");
         }
-        if (classCount == 0) classNames.append("<div class='classNameFun'>" + "No classes to display" + "<\/div>");
     });
 
     $("#save").click(saveFile);
@@ -211,10 +208,16 @@ $(function () {
         var functionCalls = $('#functionCalls');
         functionCalls.html(''); // clear the top element
         openFunc.fadeIn();
+        
         // Display all the function calls.
-        functionCalls.append("<div class='functionsList'>" + "test" + "<\/div>")
-
-
+        g_class_name = $(e.target).html();
+        var obj = GlobalIntellisenseRoot.defun[g_class_name];
+        var class_members = obj.get_class_members("all");
+        for (member in class_members) {
+            if (class_members[member]['type'] == 'function') {
+                functionCalls.append("<div class='functionsList'>" + member + "<\/div>")
+            }
+        }
     }).live('mouseover', function () {
         $(this).css({
             "background-color": "#ededed"
@@ -227,8 +230,30 @@ $(function () {
 
 
     // an even handler for the function calls list.
-    $('.functionsList').live('click', function () {
-        alert('clicked');
+    $('.functionsList').live('click', function(e) {
+        var obj = GlobalIntellisenseRoot.defun[g_class_name];
+        var class_members = obj.get_class_members("all");
+        $("#usageViewTableBody").empty();
+        var html = "";
+        
+        for (member in class_members) {
+            if (member == $(e.target).html()) {
+                var usage_list = class_members[member]['usage'];
+                for (key in usage_list) {
+                    html = html + "<tr><td><center>" + usage_list[key][1]['line'] + "</center></td>";
+                    html = html + "<td><center>" + usage_list[key][0] + "</center></td>";
+                    html = html + "<td><center>" + usage_list[key][1]['code_str'] + "</center></td><tr>";
+                    //console.log(usage_list[key][1]['line']);
+                    //console.log(usage_list[key][1]['code_str']);
+                    //console.log(usage_list[key][0]);
+            }
+          }
+        }
+        $("#usageViewTableBody").append(html);
+        openFunc.fadeOut();
+        openComp.fadeOut();
+        $("#UsageViewPopup").modal('show');
+        //alert('You selected ' + $(e.target).html());
     }).live('mouseover', function () {
         $(this).css({
             "background-color": "#ededed"
