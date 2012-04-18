@@ -852,9 +852,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
             if (inherited_member_list_count > 0) {
                 
-                html = '            <h3>\
+                html = '            <h4>\
                     <center>Inherited Data Members</center>\
-                </h3>\
+                </h4>\
                 <table id="data_member_table_1" class="table table-striped table-bordered table-condensed">\
                     <thead>\
                         <tr>\
@@ -907,9 +907,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             
 
             if (member_list_count > 0) {
-                html = '            <h3>\
+                html = '            <h4>\
                     <center>Actual Class Data Members</center>\
-                </h3>\
+                </h4>\
                 <table id="data_member_table_2" class="table table-striped table-bordered table-condensed">\
                     <thead>\
                         <tr>\
@@ -952,9 +952,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             var composition_class_member_list_count = count_dictionary_items(composition_class_member_list);
 
             if (composition_class_member_list_count > 0) {
-                html = '            <h3>\
+                html = '            <h4>\
                     <center>Composition Class Data Members</center>\
-                </h3>\
+                </h4>\
                 <table id="composition_class_member_table" class="table table-striped table-bordered table-condensed">\
                     <thead>\
                         <tr>\
