@@ -180,6 +180,21 @@ function type_function() {
         return inherited_member_list;
     }
 
+    this.get_composition_class_members = function () {
+        composition_class_members = {};
+
+        for (var composition_class in this.classes_this_composes) {
+            var composition_class_obj = GlobalIntellisenseRoot.get_single_defun(composition_class);
+            var class_members = composition_class_obj.get_class_members("all");
+
+            for (var key in class_members) {
+                composition_class_members[key] = GlobalIntellisenseRoot.get_from_global_dict(key);
+            }
+        }
+
+        return composition_class_members;
+    }
+
     // type choices: 
     // object - returns all composition or objects
     // non-object - returns all numbers & strings
