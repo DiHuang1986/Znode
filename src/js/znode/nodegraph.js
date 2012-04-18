@@ -857,7 +857,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         $("#" + this.getHtmlIdName("node_text_p")).text(this.getIntellisenseObjName());
         $("#" + this.getHtmlIdName("node_text")).attr('data-original-title', this.getIntellisenseObjName());
 
-        
         this.populateClassMembers = function() {
             var intellisense_obj = this.getIntellisenseObj();
             if (intellisense_obj != null && intellisense_obj.type == "defun") {
@@ -871,6 +870,12 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             // Now populate the members of the class into the data content
             $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
             }
+			else if (intellisense_obj != null && intellisense_obj.type == "global_var") {
+                var str = "Initial Data Definition: " + this.getIntellisenseObj().initial_data_type;
+                str += "\nInitial Value: " + this.getIntellisenseObj().value;
+				$("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
+			}
+
         }
 
         this.populateClassMembers();
