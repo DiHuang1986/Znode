@@ -401,6 +401,7 @@ function type_usage() {
     this.line = -1;
 
     this.get_code_string = function () { return this.code_str; }
+    this.get_line = function () { return this.line; }
 }
 
 function type_function_call() {
