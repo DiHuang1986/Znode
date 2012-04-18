@@ -163,7 +163,7 @@ function type_function() {
             inherited_member_list = {};
         }
 
-        for (var i= 0; i < this.super_classes.length; ++i) {
+        for (var i = 0; i < this.super_classes.length; ++i) {
             var super_class_name = this.super_classes[i];
             var super_class_obj = GlobalIntellisenseRoot.get_single_defun(super_class_name);
             inherited_member_list = super_class_obj.get_inherited_members(inherited_member_list);
@@ -172,9 +172,7 @@ function type_function() {
         // Now concat its own data if this is not an initial data call
         if (Introspect.typeOf(initial_data_call) == "undefined") {
             var class_members = this.get_class_members("all");
-            for (var key in class_members) {
-                inherited_member_list[key] = GlobalIntellisenseRoot.get_from_global_dict(key);
-            }
+            inherited_member_list[this.name] = class_members;
         }
 
         return inherited_member_list;
@@ -187,9 +185,7 @@ function type_function() {
             var composition_class_obj = GlobalIntellisenseRoot.get_single_defun(composition_class);
             var class_members = composition_class_obj.get_class_members("all");
 
-            for (var key in class_members) {
-                composition_class_members[key] = GlobalIntellisenseRoot.get_from_global_dict(key);
-            }
+            composition_class_members[composition_class] = class_members;
         }
 
         return composition_class_members;

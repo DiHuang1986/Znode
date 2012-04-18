@@ -18,6 +18,7 @@ two.prototype = new one();
 function three() {
     this.var3 = 15;
     this.var3func = function(helloTest) { return "new new hello"; }
+    this.var4 = new two();
 }
 
 three.prototype = new two();
