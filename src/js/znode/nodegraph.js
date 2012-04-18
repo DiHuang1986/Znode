@@ -615,6 +615,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             usage.click( function(event) {
                 var orig_node = get_node_from_id(graph, event.target.id);            
                 var obj = orig_node.getIntellisenseObj();
+                var count = 0;
+
                 $("#usageViewTableBody").empty();
 
                 var html = "";
@@ -622,17 +624,19 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 var usage_list = obj.get_usage();
 
                 for (var key in usage_list) {
-                    html = html + "<tr><td><center>" + key + "</center></td>";
+                    html = html + "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
                     
                     var type = usage_list[key][0];
-                    html = html + "<td><center>" + type + "</center></td>";
+                    html = html + "<td style='color:blue;font-weight:bold'><center>" + type + "</center></td>";
 
                     var usage_obj = usage_list[key][1];
                     var code_str = usage_obj.get_code_string();
-                    html = html + "<td><center>" + code_str + "</center></td><tr>";
+
+                    color = ((count % 2) == 0) ? "Indigo" : "Brown";
+
+                    html = html + "<td><center><font color='" + color + "'>" + code_str + "</font></center></td><tr>";
                 }
 
-                $("pre.source_code").snippet("javascript", { style: "bright", transparent: true, showNum: true });
                 $("#usageViewTableBody").append(html);                
                 $("#UsageViewPopup").modal('show');
             });
@@ -838,136 +842,98 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         data_members.click( function(event) {
             var orig_node = get_node_from_id(graph, event.target.id);            
             var obj = orig_node.getIntellisenseObj();
-            $("#DataMemberViewTableBody1").empty();
-            $("#DataMemberViewTableBody2").empty();
+            $("#data_member_body").empty();
+            var html = "";
+            var count = 0;
+            var color = "";
 
             var inherited_member_list = obj.get_inherited_members();
+            var inherited_member_list_count = count_dictionary_items(inherited_member_list);
 
-            var count = 0;
-            var html = '            <h3>\
-                <center>Inherited Data Members</center>\
-            </h3>\
-            <table id="data_member_table_1" class="table table-striped table-bordered table-condensed">\
-                <thead>\
-                    <tr>\
-                        <th><center>Data Member</center></th>\
-                        <th><center>Inherits From</center></th>\
-                        <th><center>Type</center></th>\
-                        <th><center>Usage</center></th>\
-                    </tr>\
-                </thead>\
-                <tbody id="DataMemberViewTableBody1">';
-
-
-            // Display all the inherited data members
-            for (var inherited_class in inherited_member_list) {
-                for (var key in inherited_member_list[inherited_class]) {
-                    var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
-                    var usage_obj = tempObj.get_usage();
+            if (inherited_member_list_count > 0) {
                 
-                    var row_span = count_dictionary_items(usage_obj);
-                    html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
+                html = '            <h3>\
+                    <center>Inherited Data Members</center>\
+                </h3>\
+                <table id="data_member_table_1" class="table table-striped table-bordered table-condensed">\
+                    <thead>\
+                        <tr>\
+                            <th><center>Data Member</center></th>\
+                            <th><center>Inherits From</center></th>\
+                            <th><center>Type</center></th>\
+                            <th><center>Usage</center></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="DataMemberViewTableBody1">';
+
+
+                // Display all the inherited data members
+                for (var inherited_class in inherited_member_list) {
+                    for (var key in inherited_member_list[inherited_class]) {
+                        var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                        var usage_obj = tempObj.get_usage();
+                
+                        var row_span = count_dictionary_items(usage_obj);
+                        html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
                     
-                    html += "<td style='color:blue;font-weight:bold'><center>" + inherited_class + "</center></td>";
+                        html += "<td style='color:blue;font-weight:bold'><center>" + inherited_class + "</center></td>";
 
-                    var type = tempObj.type;
-                    html += "<td><center>" + type + "</center></td>";
+                        var type = tempObj.type;
+                        html += "<td><center>" + type + "</center></td>";
                 
-                    html += "<td>";
+                        html += "<td>";
 
-                    for (var key in usage_obj) {
-                        var color = "Brown";
-                        if (count % 2 == 0) color = "Indigo";
-                        var code_str = usage_obj[key][1].get_code_string();
-                        html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
-                        ++count;
+                        for (var key in usage_obj) {
+                            color = ((count % 2) == 0) ? "Indigo" : "Brown";
+                            var code_str = usage_obj[key][1].get_code_string();
+                            html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                            ++count;
+                        }
+
+                        html += "</td>";
                     }
-
-                    html += "</td>";
                 }
-            }
 
-            html += "</tbody></table>";
+                html += "</tbody></table>";
+            }
 
             $("#data_member_body").append(html);
 
-            html = '            <h3>\
-                <center>Actual Class Data Members</center>\
-            </h3>\
-            <table id="data_member_table_2" class="table table-striped table-bordered table-condensed">\
-                <thead>\
-                    <tr>\
-                        <th><center>Data Member</center></th>\
-                        <th><center>Type</center></th>\
-                        <th><center>Usage</center></th>\
-                    </tr>\
-                </thead>\
-                <tbody id="DataMemberViewTableBody2">';
+
 
             // Display all the class data members
             var member_list = obj.get_class_members("all");
-
-            for (var key in member_list) {
-                var usage_obj = member_list[key].get_usage();
-                
-                var row_span = count_dictionary_items(usage_obj);
-                html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + key + "</center></td>";
-                    
-                var type = member_list[key].type;
-                html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
-
-                html += "<td>";
-
-                for (var key in usage_obj) {
-                    var color = "Brown";
-                    if (count % 2 == 0) color = "Indigo";
-                    var code_str = usage_obj[key][1].get_code_string();
-                    html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
-                    ++count;
-                }
-
-                html += "</td>";
-            }
-
-            html += "</tbody></table>";
-
-            $("#data_member_body").append(html);
-
-            // Display all the Composition Classes
-            html = '            <h3>\
-                <center>Composition Class Data Members</center>\
-            </h3>\
-            <table id="composition_class_member_table" class="table table-striped table-bordered table-condensed">\
-                <thead>\
-                    <tr>\
-                        <th><center>Data Member</center></th>\
-                        <th><center>Composition Class</center></th>\
-                        <th><center>Type</center></th>\
-                        <th><center>Usage</center></th>\
-                    </tr>\
-                </thead>\
-                <tbody id="Tbody1">';
-
-            var composition_class_member_list = obj.get_composition_class_members();
+            var member_list_count = count_dictionary_items(member_list);
             
-            for (var composition_class in composition_class_member_list) {
-                for (var key in composition_class_member_list[composition_class]) {
-                    var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
-                    var usage_obj = tempObj.get_usage();
+
+            if (member_list_count > 0) {
+                html = '            <h3>\
+                    <center>Actual Class Data Members</center>\
+                </h3>\
+                <table id="data_member_table_2" class="table table-striped table-bordered table-condensed">\
+                    <thead>\
+                        <tr>\
+                            <th><center>Data Member</center></th>\
+                            <th><center>Type</center></th>\
+                            <th><center>Usage</center></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="DataMemberViewTableBody2">';
+
+
+                for (var key in member_list) {
+                    var usage_obj = member_list[key].get_usage();
                 
                     var row_span = count_dictionary_items(usage_obj);
-                    html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
+                    html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + key + "</center></td>";
                     
-                    html += "<td style='color:blue;font-weight:bold'><center>" + inherited_class + "</center></td>";
+                    var type = member_list[key].type;
+                    html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
 
-                    var type = tempObj.type;
-                    html += "<td><center>" + type + "</center></td>";
-                
                     html += "<td>";
 
                     for (var key in usage_obj) {
-                        var color = "Brown";
-                        if (count % 2 == 0) color = "Indigo";
+                        color = ((count % 2) == 0) ? "Indigo" : "Brown";
                         var code_str = usage_obj[key][1].get_code_string();
                         html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
                         ++count;
@@ -975,11 +941,62 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                     html += "</td>";
                 }
+
+                html += "</tbody></table>";
+
+                $("#data_member_body").append(html);
             }
 
-            html += "</tbody></table>";
+            // Display all the Composition Classes
+            var composition_class_member_list = obj.get_composition_class_members();
+            var composition_class_member_list_count = count_dictionary_items(composition_class_member_list);
 
-            $("#data_member_body").append(html);
+            if (composition_class_member_list_count > 0) {
+                html = '            <h3>\
+                    <center>Composition Class Data Members</center>\
+                </h3>\
+                <table id="composition_class_member_table" class="table table-striped table-bordered table-condensed">\
+                    <thead>\
+                        <tr>\
+                            <th><center>Data Member</center></th>\
+                            <th><center>Composition Class</center></th>\
+                            <th><center>Type</center></th>\
+                            <th><center>Usage</center></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="Tbody1">';
+
+            
+                for (var composition_class in composition_class_member_list) {
+                    for (var key in composition_class_member_list[composition_class]) {
+                        var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                        var usage_obj = tempObj.get_usage();
+                
+                        var row_span = count_dictionary_items(usage_obj);
+                        html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
+                    
+                        html += "<td style='color:blue;font-weight:bold'><center>" + composition_class + "</center></td>";
+
+                        var type = tempObj.type;
+                        html += "<td><center>" + type + "</center></td>";
+                
+                        html += "<td>";
+
+                        for (var key in usage_obj) {
+                            color = ((count % 2) == 0) ? "Indigo" : "Brown";
+                            var code_str = usage_obj[key][1].get_code_string();
+                            html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                            ++count;
+                        }
+
+                        html += "</td>";
+                    }
+                }
+
+                html += "</tbody></table>";
+
+                $("#data_member_body").append(html);
+            }
 
             $("#DataMembersPopup").modal('show');
         });
