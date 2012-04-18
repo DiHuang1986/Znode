@@ -711,10 +711,16 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     inheritance_graph.clearAll();
 
                     $("#SecondaryCanvasView").modal('show');
+                    var obj = orig_node.getIntellisenseObj();
 
+                    //=============generate single class inheritance tree=====
+                    var obj = orig_node.getIntellisenseObj();
+                    inheritance_graph.generateInheritanceTreeOf(obj);
+                    //==========end of generation========
+
+                    /*
                     var startx = 100; var starty = 100;
                     // Get the object
-                    var obj = orig_node.getIntellisenseObj();
                     var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
                     inheritance_graph.add_node_name_mapping(obj, node);
 
@@ -734,7 +740,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
                     }
 
+
                     inheritance_graph.generateSingleInheritanceConnection(obj, node);
+                    */
                 });
             }
 
@@ -1122,6 +1130,58 @@ while(curDate-date < millis);
         }
     }
 
+
+    //====================Single class inheritance view===============================
+    this.generateInheritanceTreeOf =function(classObj) {
+        //var intellisense = GlobalIntellisenseRoot;
+        var inheritanceNodeHeight = 70;
+        var inheritanceNodeWidth = 150;
+
+        var startx = 50; var starty = 50;
+        for(var i=0; i<inheritanceClassLvl.length; i++){
+            for(var j=0; j<inheritanceClassLvl[i].length; j++) {
+                if(classObj == inheritanceClassLvl[i][j]) {
+                    var classLvl = i;
+                    var obj = inheritanceClassLvl[i][j];
+                    var originNode = this.addNode(startx, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                    //node_name_id_mapping[obj.name] = originNode.getID();
+                    var str = "";
+                    try {
+                        var class_members = obj.get_class_members("all");
+                        str = class_members_to_string(class_members);
+                    } catch(e) { }
+
+
+                    originNode.txt[0].value = str;
+
+                    originNode.txt[0].focus();
+
+                    var subNode = originNode;
+                    //Draw the classObj's super classes
+                    for(var superClassObj=get_class_obj(obj.super_classes[0]); superClassObj; superClassObj=get_class_obj(superClassObj.super_classes[0])) {
+                        var supNode = this.addNode(startx, starty+ (--classLvl)*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, superClassObj);
+                        //node_name_id_mapping[obj.name] = supNode.getID();
+                        var str = "";
+                        try {
+                            var class_members = obj.get_class_members("all");
+                            str = class_members_to_string(class_members);
+                        } catch(e) { }
+
+                        supNode.txt[0].value = str;
+
+                        supNode.txt[0].focus();
+
+                        createConnection(subNode, "top", supNode, "bottom", "inheritance");
+                        subNode = supNode;
+                    }
+
+                }
+            }
+        }
+
+
+    }
+    //====================END of single class inheritance view========================
     //==========================Inheritance Tree======================================
     this.generateInheritanceTree = function () {
         var intellisense = GlobalIntellisenseRoot;
