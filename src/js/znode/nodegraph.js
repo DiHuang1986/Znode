@@ -1322,14 +1322,17 @@ while(curDate-date < millis);
         for(var i in nodes) {
             nodes[i].remove();
         }
+
+        node_name_id_mapping = {};
+        inheritanceClassLvl = [];
     }
 
 
     //====================Single class inheritance view===============================
-    this.generateInheritanceTreeOf =function(classObj) {
+    this.generateInheritanceTreeOf = function(classObj) {
         //var intellisense = GlobalIntellisenseRoot;
-        var inheritanceNodeHeight = 70;
-        var inheritanceNodeWidth = 150;
+        var inheritanceNodeHeight = defaultNodeHeight;
+        var inheritanceNodeWidth = defaultNodeWidth;
 
         var startx = 50; var starty = 50;
         for(var i=0; i<inheritanceClassLvl.length; i++){
@@ -1372,15 +1375,13 @@ while(curDate-date < millis);
                 }
             }
         }
-
-
     }
     //====================END of single class inheritance view========================
     //==========================Inheritance Tree======================================
-    this.generateInheritanceTree = function () {
+    this.generateInheritanceTree = function (display_globals) {
         var intellisense = GlobalIntellisenseRoot;
-        var inheritanceNodeHeight = 70;
-        var inheritanceNodeWidth = 150;
+        var inheritanceNodeHeight = defaultNodeHeight;
+        var inheritanceNodeWidth = defaultNodeWidth;
         var classLvl;
         //inheritanceClassLvl = [];
 
@@ -1426,6 +1427,9 @@ while(curDate-date < millis);
             }
         }
 
+        // Update the startx and start y
+        starty += i * 2 * inheritanceNodeHeight;
+
         for (var key in intellisense.defun) {
             var obj = intellisense.defun[key];
             var node = this.getNodeFromName(obj.name);
@@ -1436,6 +1440,24 @@ while(curDate-date < millis);
                     var parent_node = this.getNodeFromName(parent_class_name);
                     createConnection(node, "top", parent_node, "bottom", "inheritance");
                 }
+            }
+        }
+
+        if (display_globals == true) {
+            // Now load the global variables 
+            for (var key in GlobalIntellisenseRoot.global_vars) {
+                var obj = intellisense.global_vars[key];
+                var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                node_name_id_mapping[obj.name] = node.getID();
+                startx += defaultNodeWidth + 20;
+
+                if (startx > win.width()) {
+                    startx = 50;
+                    starty += defaultNodeHeight + 20;
+                }
+
+                node.txt[0].focus();
+                currentNode = node;
             }
         }
     }
@@ -1488,52 +1510,53 @@ while(curDate-date < millis);
         currentNode = node;
     }
 
-    this.generateNodes = function () {
+//    this.generateNodes = function () {
 
-        var intellisense = GlobalIntellisenseRoot;
-        // Generate new Nodes based on the classes found.
-        var startx = 50; var starty = 100;
-        for (var key in intellisense.defun) {
-            var obj = intellisense.defun[key];
-            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
-            node_name_id_mapping[obj.name] = node.getID();
-            startx += defaultNodeWidth + 20;
-            if (startx > win.width()) {
-                startx = 50;
-                starty += defaultNodeHeight + 20;
-            }
+//        var intellisense = GlobalIntellisenseRoot;
+//        // Generate new Nodes based on the classes found.
+//        var startx = 50; var starty = 100;
+//        for (var key in intellisense.defun) {
+//            var obj = intellisense.defun[key];
+//            // var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+//            // node_name_id_mapping[obj.name] = node.getID();
+//            startx += defaultNodeWidth + 20;
+//            if (startx > win.width()) {
+//                startx = 50;
+//                starty += defaultNodeHeight + 20;
+//            }
 
-            // Get the data members for this class
-            var str = "";
-            try {
-                var class_members = obj.get_class_members("all");
-                str = class_members_to_string(class_members);
-            } catch(e) { }
+//            // Get the data members for this class
+//            var str = "";
+//            try {
+//                var class_members = obj.get_class_members("all");
+//                str = class_members_to_string(class_members);
+//            } catch(e) { }
 
-            node.txt[0].value = str;
+//            // node.txt[0].value = str;
 
-            node.txt[0].focus();
-            currentNode = node;
-        }
+//            // node.txt[0].focus();
+//            // currentNode = node;
+//        }
 
-        this.generateInheritanceConnections();
+//        // this.generateInheritanceConnections();
+//        this.generateInheritanceTree();
 
-        // Now load the global variables 
-        for (var key in intellisense.global_vars) {
-            var obj = intellisense.global_vars[key];
-            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
-            node_name_id_mapping[obj.name] = node.getID();
-            startx += defaultNodeWidth + 20;
+//        // Now load the global variables 
+//        for (var key in intellisense.global_vars) {
+//            var obj = intellisense.global_vars[key];
+//            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+//            node_name_id_mapping[obj.name] = node.getID();
+//            startx += defaultNodeWidth + 20;
 
-            if (startx > win.width()) {
-                startx = 50;
-                starty += defaultNodeHeight + 20;
-            }
+//            if (startx > win.width()) {
+//                startx = 50;
+//                starty += defaultNodeHeight + 20;
+//            }
 
-            node.txt[0].focus();
-            currentNode = node;
-        }
-    }
+//            node.txt[0].focus();
+//            currentNode = node;
+//        }
+//    }
 
     this.generateSingleCompositionConnection = function(obj, node) {
         // Now find all its parents and connect them

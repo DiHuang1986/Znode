@@ -153,10 +153,15 @@ $(function () {
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');
     });
+
+    $('#all_view').click(function () {
+        graph.clearAll();
+        graph.generateInheritanceTree(true);
+    });
     //===============inheritance View
     $('#inheritance_view').click(function() {
         graph.clearAll();
-        graph.generateInheritanceTree();
+        graph.generateInheritanceTree(false);
     });
     //===============end of inheritance view
     $("#parse_button").click(function () {
@@ -414,7 +419,7 @@ function parseInit(code, node_str) {
     
   generate_intellisense(code);
 
-  graph.generateNodes();
+  graph.generateInheritanceTree(true);
   
   $(node_str).modal('hide');  
 }
