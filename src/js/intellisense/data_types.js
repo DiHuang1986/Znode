@@ -80,9 +80,9 @@ function type_function() {
         this.source_code = gen_code(this.ast, { beautify: true });
     else
         this.source_code = "";
-    
+
     this.super_classes = [];
-    this.sub_classes   = [];
+    this.sub_classes = [];
     
     this.classes_where_composed = {};
     this.classes_this_composes = {};
@@ -141,8 +141,54 @@ function type_function() {
         }
     }
 
+    this.add_super_class = function (class_name) {
+        if (this.super_classes.indexOf(class_name) == -1)
+            this.super_classes.push(class_name);
+    }
+
+    this.add_sub_class = function (class_name) {
+        if (this.sub_classes.indexOf(class_name) == -1)
+            this.sub_classes.push(class_name);
+    }
+
     this.get_dependencies = function () {
         return this.dependencies;
+    }
+
+    this.get_inherited_members = function (inherited_member_list) {
+        // Look at all the super classes. this will be a recursive process
+        // The initial function call will be an empty list
+        if (Introspect.typeOf(inherited_member_list) == "undefined") {
+            var initial_data_call = true;
+            inherited_member_list = {};
+        }
+
+        for (var i = 0; i < this.super_classes.length; ++i) {
+            var super_class_name = this.super_classes[i];
+            var super_class_obj = GlobalIntellisenseRoot.get_single_defun(super_class_name);
+            inherited_member_list = super_class_obj.get_inherited_members(inherited_member_list);
+        }
+
+        // Now concat its own data if this is not an initial data call
+        if (Introspect.typeOf(initial_data_call) == "undefined") {
+            var class_members = this.get_class_members("all");
+            inherited_member_list[this.name] = class_members;
+        }
+
+        return inherited_member_list;
+    }
+
+    this.get_composition_class_members = function () {
+        composition_class_members = {};
+
+        for (var composition_class in this.classes_this_composes) {
+            var composition_class_obj = GlobalIntellisenseRoot.get_single_defun(composition_class);
+            var class_members = composition_class_obj.get_class_members("all");
+
+            composition_class_members[composition_class] = class_members;
+        }
+
+        return composition_class_members;
     }
 
     // type choices: 
@@ -271,7 +317,7 @@ function type_function() {
                         if (expr.name == "this") {
                             // We are going to handle this locally
                             var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
-                            func_obj.add_usage("Function Call", expr);
+                            func_obj.add_usage(expr, "Function Call");
                         } else {
                             populate_function_calls(expr);
                         }
@@ -292,7 +338,7 @@ function type_function() {
                                 if (block_expr.type == "call") {
                                     if (block_expr.name == "this") {
                                         var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
-                                        func_obj.add_usage("Function Call", block_expr);
+                                        func_obj.add_usage(block_expr, "Function Call");
                                     } else {
                                         populate_function_calls(block_expr);
                                     }
@@ -354,7 +400,8 @@ function type_usage() {
     this.code_str = "";
     this.line = -1;
 
-    this.get_code_string = function () { return this.code_str; }
+    this.get_code_string = function () { return GlobalIntellisenseRoot.source[this.line]; }
+    this.get_line_number = function () { return this.line; }
 }
 
 function type_function_call() {
@@ -504,6 +551,7 @@ function global_node() {
     this.distinct_global_var_definition_found = {}; // For global variables
     this.distinct_defun_found = {};
     this.variable_class_mapping = {};               // For global variables holding composition.
+    this.source_code = "";
 
     this.scratch_class_mapping = {};                // Used by internal functions
 

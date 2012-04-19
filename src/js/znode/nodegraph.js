@@ -13,6 +13,10 @@ var topHeight = 0;
 var main_canvas_width = 0;
 var main_canvas_height = 0;
 
+//===========
+var inheritanceClassLvl=[];
+//===========
+
 function initialize() {
     topHeight = $("#top_toolbar").height();
     main_canvas_width = win.width();
@@ -611,6 +615,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             usage.click( function(event) {
                 var orig_node = get_node_from_id(graph, event.target.id);            
                 var obj = orig_node.getIntellisenseObj();
+                var count = 0;
+
                 $("#usageViewTableBody").empty();
 
                 var html = "";
@@ -618,14 +624,17 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 var usage_list = obj.get_usage();
 
                 for (var key in usage_list) {
-                    html = html + "<tr><td><center>" + key + "</center></td>";
+                    html = html + "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
                     
                     var type = usage_list[key][0];
-                    html = html + "<td><center>" + type + "</center></td>";
+                    html = html + "<td style='color:blue;font-weight:bold'><center>" + type + "</center></td>";
 
                     var usage_obj = usage_list[key][1];
                     var code_str = usage_obj.get_code_string();
-                    html = html + "<td><center>" + code_str + "</center></td><tr>";
+
+                    color = ((count % 2) == 0) ? "Indigo" : "Brown";
+
+                    html = html + "<td><center><font color='" + color + "'>" + code_str + "</font></center></td><tr>";
                 }
 
                 $("#usageViewTableBody").append(html);                
@@ -663,7 +672,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             $("#source_body").empty();
             $("#source_body").append('<pre class="source_code"></pre>');
             $(".source_code").append(src);
-            $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
+            $("pre.source_code").snippet("javascript", { style: "bright", transparent: true, showNum: true });
             $("#SourceViewPopup").modal('show');
         });
 
@@ -707,10 +716,16 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     inheritance_graph.clearAll();
 
                     $("#SecondaryCanvasView").modal('show');
+                    var obj = orig_node.getIntellisenseObj();
 
+                    //=============generate single class inheritance tree=====
+                    var obj = orig_node.getIntellisenseObj();
+                    inheritance_graph.generateInheritanceTreeOf(obj);
+                    //==========end of generation========
+
+                    /*
                     var startx = 100; var starty = 100;
                     // Get the object
-                    var obj = orig_node.getIntellisenseObj();
                     var node = inheritance_graph.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
                     inheritance_graph.add_node_name_mapping(obj, node);
 
@@ -730,7 +745,9 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         startx += defaultNodeWidth + 20; starty += defaultNodeHeight + 20;
                     }
 
+
                     inheritance_graph.generateSingleInheritanceConnection(obj, node);
+                    */
                 });
             }
 
@@ -796,6 +813,195 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
                 composition.tooltip('hide');
             }
+
+            // Add the view for showing Detailed data members
+            if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("data_members") + "' width=15 height=15 src='img/data_members.png' rel='tooltip' title='Data Members'><\/img>");
+            var data_members = $("#" + this.getHtmlIdName("data_members"));
+            data_members.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 85,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            data_members.tooltip('hide');
+        }
+
+        data_members.click( function(event) {
+            var orig_node = get_node_from_id(graph, event.target.id);            
+            var obj = orig_node.getIntellisenseObj();
+            $("#data_member_body").empty();
+            var html = "";
+            var count = 0;
+            var color = "";
+
+            $("#DataMembersPopup").css({ width: win.width() - 300, top: 300, left: 400 });
+
+            var inherited_member_list = obj.get_inherited_members();
+            var inherited_member_list_count = count_dictionary_items(inherited_member_list);
+
+            if (inherited_member_list_count > 0) {
+                
+                html = '            <h4>\
+                    <center>Inherited Data Members</center>\
+                </h4>\
+                <table id="data_member_table_1" class="table table-striped table-bordered table-condensed">\
+                    <thead>\
+                        <tr>\
+                            <th><center>Data Member</center></th>\
+                            <th><center>Inherits From</center></th>\
+                            <th><center>Type</center></th>\
+                            <th><center>Usage</center></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="DataMemberViewTableBody1">';
+
+
+                // Display all the inherited data members
+                for (var inherited_class in inherited_member_list) {
+                    for (var key in inherited_member_list[inherited_class]) {
+                        var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                        var usage_obj = tempObj.get_usage();
+                
+                        var row_span = count_dictionary_items(usage_obj);
+                        html += "<tr><td style='color:blue;font-weight:bold'><center>" + split_name(key) + "</center></td>";
+                    
+                        html += "<td style='color:blue;font-weight:bold'><center>" + inherited_class + "</center></td>";
+
+                        var type = tempObj.type;
+                        html += "<td><center>" + type + "</center></td>";
+                
+                        html += "<td>";
+
+                        for (var key in usage_obj) {
+                            color = ((count % 2) == 0) ? "Indigo" : "Brown";
+                            var code_str = usage_obj[key][1].get_code_string();
+                            html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                            ++count;
+                        }
+
+                        html += "</td>";
+                    }
+                }
+
+                html += "</tbody></table>";
+            }
+
+            $("#data_member_body").append(html);
+
+
+
+            // Display all the class data members
+            var member_list = obj.get_class_members("all");
+            var member_list_count = count_dictionary_items(member_list);
+            
+
+            if (member_list_count > 0) {
+                html = '            <h4>\
+                    <center>Actual Class Data Members</center>\
+                </h4>\
+                <table id="data_member_table_2" class="table table-striped table-bordered table-condensed">\
+                    <thead>\
+                        <tr>\
+                            <th><center>Data Member</center></th>\
+                            <th><center>Type</center></th>\
+                            <th><center>Usage</center></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="DataMemberViewTableBody2">';
+
+
+                for (var key in member_list) {
+                    var usage_obj = member_list[key].get_usage();
+                
+                    var row_span = count_dictionary_items(usage_obj);
+                    html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + split_name(key) + "</center></td>";
+                    
+                    var type = member_list[key].type;
+                    html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
+
+                    html += "<td>";
+
+                    for (var key in usage_obj) {
+                        color = ((count % 2) == 0) ? "Indigo" : "Brown";
+                        var code_str = usage_obj[key][1].get_code_string();
+                        html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                        ++count;
+                    }
+
+                    html += "</td>";
+                }
+
+                html += "</tbody></table>";
+
+                $("#data_member_body").append(html);
+            }
+
+            // Display all the Composition Classes
+            var composition_class_member_list = obj.get_composition_class_members();
+            var composition_class_member_list_count = count_dictionary_items(composition_class_member_list);
+
+            if (composition_class_member_list_count > 0) {
+                html = '            <h4>\
+                    <center>Composition Class Data Members</center>\
+                </h4>\
+                <table id="composition_class_member_table" class="table table-striped table-bordered table-condensed">\
+                    <thead>\
+                        <tr>\
+                            <th><center>Data Member</center></th>\
+                            <th><center>Composition Class</center></th>\
+                            <th><center>Type</center></th>\
+                            <th><center>Usage</center></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="Tbody1">';
+
+            
+                for (var composition_class in composition_class_member_list) {
+                    for (var key in composition_class_member_list[composition_class]) {
+                        var tempObj = GlobalIntellisenseRoot.get_from_global_dict(key);
+                        var usage_obj = tempObj.get_usage();
+                
+                        var row_span = count_dictionary_items(usage_obj);
+                        html += "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
+                    
+                        html += "<td style='color:blue;font-weight:bold'><center>" + split_name(composition_class) + "</center></td>";
+
+                        var type = tempObj.type;
+                        html += "<td><center>" + type + "</center></td>";
+                
+                        html += "<td>";
+
+                        for (var key in usage_obj) {
+                            color = ((count % 2) == 0) ? "Indigo" : "Brown";
+                            var code_str = usage_obj[key][1].get_code_string();
+                            html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                            ++count;
+                        }
+
+                        html += "</td>";
+                    }
+                }
+
+                html += "</tbody></table>";
+
+                $("#data_member_body").append(html);
+            }
+
+            $("#DataMembersPopup").modal('show');
+        });
         }
 
         // var total_height = nodeHeight - bar.height() - 8;
@@ -857,7 +1063,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         $("#" + this.getHtmlIdName("node_text_p")).text(this.getIntellisenseObjName());
         $("#" + this.getHtmlIdName("node_text")).attr('data-original-title', this.getIntellisenseObjName());
 
-        
         this.populateClassMembers = function() {
             var intellisense_obj = this.getIntellisenseObj();
             if (intellisense_obj != null && intellisense_obj.type == "defun") {
@@ -871,6 +1076,12 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             // Now populate the members of the class into the data content
             $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
             }
+            else if (intellisense_obj != null && intellisense_obj.type == "global_var") {
+                var str = "Initial Data Definition: " + this.getIntellisenseObj().initial_data_type;
+                str += "\nInitial Value: " + this.getIntellisenseObj().value;
+                $("#" + this.getHtmlIdName("node_text")).attr('data-content', str);
+            }
+
         }
 
         this.populateClassMembers();
@@ -1111,7 +1322,146 @@ while(curDate-date < millis);
         for(var i in nodes) {
             nodes[i].remove();
         }
+
+        node_name_id_mapping = {};
+        inheritanceClassLvl = [];
     }
+
+
+    //====================Single class inheritance view===============================
+    this.generateInheritanceTreeOf = function(classObj) {
+        //var intellisense = GlobalIntellisenseRoot;
+        var inheritanceNodeHeight = defaultNodeHeight;
+        var inheritanceNodeWidth = defaultNodeWidth;
+
+        var startx = 50; var starty = 50;
+        for(var i=0; i<inheritanceClassLvl.length; i++){
+            for(var j=0; j<inheritanceClassLvl[i].length; j++) {
+                if(classObj == inheritanceClassLvl[i][j]) {
+                    var classLvl = i;
+                    var obj = inheritanceClassLvl[i][j];
+                    var originNode = this.addNode(startx, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                    //node_name_id_mapping[obj.name] = originNode.getID();
+                    var str = "";
+                    try {
+                        var class_members = obj.get_class_members("all");
+                        str = class_members_to_string(class_members);
+                    } catch(e) { }
+
+
+                    originNode.txt[0].value = str;
+
+                    originNode.txt[0].focus();
+
+                    var subNode = originNode;
+                    //Draw the classObj's super classes
+                    for(var superClassObj=get_class_obj(obj.super_classes[0]); superClassObj; superClassObj=get_class_obj(superClassObj.super_classes[0])) {
+                        var supNode = this.addNode(startx, starty+ (--classLvl)*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, superClassObj);
+                        //node_name_id_mapping[obj.name] = supNode.getID();
+                        var str = "";
+                        try {
+                            var class_members = obj.get_class_members("all");
+                            str = class_members_to_string(class_members);
+                        } catch(e) { }
+
+                        supNode.txt[0].value = str;
+
+                        supNode.txt[0].focus();
+
+                        createConnection(subNode, "top", supNode, "bottom", "inheritance");
+                        subNode = supNode;
+                    }
+
+                }
+            }
+        }
+    }
+    //====================END of single class inheritance view========================
+    //==========================Inheritance Tree======================================
+    this.generateInheritanceTree = function (display_globals) {
+        var intellisense = GlobalIntellisenseRoot;
+        var inheritanceNodeHeight = defaultNodeHeight;
+        var inheritanceNodeWidth = defaultNodeWidth;
+        var classLvl;
+        //inheritanceClassLvl = [];
+
+        for(var key in intellisense.defun) {
+            classLvl = 0;
+
+            var currentClassObj = intellisense.defun[key];
+            var curClassObj = currentClassObj;
+            var supClassName;
+            if(curClassObj.super_classes)
+                supClassName = curClassObj.super_classes[0];
+
+            while (supClassName) {
+                curClassObj = get_class_obj(supClassName);
+                supClassName = curClassObj.super_classes[0];
+                classLvl ++;
+            }
+
+            if(!inheritanceClassLvl[classLvl]) {
+                inheritanceClassLvl[classLvl] =[];
+                inheritanceClassLvl[classLvl].push(currentClassObj);
+            } else {
+                inheritanceClassLvl[classLvl].push(currentClassObj);
+            }
+        }
+
+        var startx = 50; var starty = 50;
+        for (var i = 0; i < inheritanceClassLvl.length; i++) {
+            for(var j = 0; j < inheritanceClassLvl[i].length; j++) {
+                var obj = inheritanceClassLvl[i][j];
+                var node = this.addNode(startx+j*1.5*inheritanceNodeWidth, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                node_name_id_mapping[obj.name] = node.getID();
+                var str = "";
+                try {
+                    var class_members = obj.get_class_members("all");
+                    str = class_members_to_string(class_members);
+                } catch(e) { }
+
+                node.txt[0].value = str;
+
+                node.txt[0].focus();
+                currentNode = node;
+            }
+        }
+
+        // Update the startx and start y
+        starty += i * 2 * inheritanceNodeHeight;
+
+        for (var key in intellisense.defun) {
+            var obj = intellisense.defun[key];
+            var node = this.getNodeFromName(obj.name);
+
+            if (obj.super_classes) {
+                for (var i = 0; i < obj.super_classes.length; ++i) {
+                    var parent_class_name = obj.super_classes[i];
+                    var parent_node = this.getNodeFromName(parent_class_name);
+                    createConnection(node, "top", parent_node, "bottom", "inheritance");
+                }
+            }
+        }
+
+        if (display_globals == true) {
+            // Now load the global variables 
+            for (var key in GlobalIntellisenseRoot.global_vars) {
+                var obj = intellisense.global_vars[key];
+                var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+                node_name_id_mapping[obj.name] = node.getID();
+                startx += defaultNodeWidth + 20;
+
+                if (startx > win.width()) {
+                    startx = 50;
+                    starty += defaultNodeHeight + 20;
+                }
+
+                node.txt[0].focus();
+                currentNode = node;
+            }
+        }
+    }
+    //========================end of Inheritance Tree====================================
 
 
     this.clearAll = function() {
@@ -1160,52 +1510,53 @@ while(curDate-date < millis);
         currentNode = node;
     }
 
-    this.generateNodes = function () {
+//    this.generateNodes = function () {
 
-        var intellisense = GlobalIntellisenseRoot;
-        // Generate new Nodes based on the classes found.
-        var startx = 50; var starty = 100;
-        for (var key in intellisense.defun) {
-            var obj = intellisense.defun[key];
-            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
-            node_name_id_mapping[obj.name] = node.getID();
-            startx += defaultNodeWidth + 20;
-            if (startx > win.width()) {
-                startx = 50;
-                starty += defaultNodeHeight + 20;
-            }
+//        var intellisense = GlobalIntellisenseRoot;
+//        // Generate new Nodes based on the classes found.
+//        var startx = 50; var starty = 100;
+//        for (var key in intellisense.defun) {
+//            var obj = intellisense.defun[key];
+//            // var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+//            // node_name_id_mapping[obj.name] = node.getID();
+//            startx += defaultNodeWidth + 20;
+//            if (startx > win.width()) {
+//                startx = 50;
+//                starty += defaultNodeHeight + 20;
+//            }
 
-            // Get the data members for this class
-            var str = "";
-            try {
-                var class_members = obj.get_class_members("all");
-                str = class_members_to_string(class_members);
-            } catch(e) { }
+//            // Get the data members for this class
+//            var str = "";
+//            try {
+//                var class_members = obj.get_class_members("all");
+//                str = class_members_to_string(class_members);
+//            } catch(e) { }
 
-            node.txt[0].value = str;
+//            // node.txt[0].value = str;
 
-            node.txt[0].focus();
-            currentNode = node;
-        }
+//            // node.txt[0].focus();
+//            // currentNode = node;
+//        }
 
-        this.generateInheritanceConnections();
+//        // this.generateInheritanceConnections();
+//        this.generateInheritanceTree();
 
-        // Now load the global variables 
-        for (var key in intellisense.global_vars) {
-            var obj = intellisense.global_vars[key];
-            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
-            node_name_id_mapping[obj.name] = node.getID();
-            startx += defaultNodeWidth + 20;
+//        // Now load the global variables 
+//        for (var key in intellisense.global_vars) {
+//            var obj = intellisense.global_vars[key];
+//            var node = this.addNode(startx, starty, defaultNodeWidth, defaultNodeHeight, obj);
+//            node_name_id_mapping[obj.name] = node.getID();
+//            startx += defaultNodeWidth + 20;
 
-            if (startx > win.width()) {
-                startx = 50;
-                starty += defaultNodeHeight + 20;
-            }
+//            if (startx > win.width()) {
+//                startx = 50;
+//                starty += defaultNodeHeight + 20;
+//            }
 
-            node.txt[0].focus();
-            currentNode = node;
-        }
-    }
+//            node.txt[0].focus();
+//            currentNode = node;
+//        }
+//    }
 
     this.generateSingleCompositionConnection = function(obj, node) {
         // Now find all its parents and connect them

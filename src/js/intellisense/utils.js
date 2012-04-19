@@ -108,3 +108,16 @@ function clone(orig_obj) {
     var clone = jQuery.extend(true, {}, orig_obj);
     return clone;
 }
+
+function count_dictionary_items(dict) {
+    var count = 0;
+    for (var key in dict) {
+        ++count;
+    }
+
+    return count;
+}
+
+function split_name(qualified_name) {
+    return qualified_name.split(".")[1];
+}
