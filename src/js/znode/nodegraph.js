@@ -1336,7 +1336,7 @@ while(curDate-date < millis);
         }
 
         node_name_id_mapping = {};
-        inheritanceClassLvl = [];
+        //inheritanceClassLvl = [];
     }
 
 
@@ -1394,31 +1394,6 @@ while(curDate-date < millis);
         var intellisense = GlobalIntellisenseRoot;
         var inheritanceNodeHeight = defaultNodeHeight;
         var inheritanceNodeWidth = defaultNodeWidth;
-        var classLvl;
-        //inheritanceClassLvl = [];
-
-        for(var key in intellisense.defun) {
-            classLvl = 0;
-
-            var currentClassObj = intellisense.defun[key];
-            var curClassObj = currentClassObj;
-            var supClassName;
-            if(curClassObj.super_classes)
-                supClassName = curClassObj.super_classes[0];
-
-            while (supClassName) {
-                curClassObj = get_class_obj(supClassName);
-                supClassName = curClassObj.super_classes[0];
-                classLvl ++;
-            }
-
-            if(!inheritanceClassLvl[classLvl]) {
-                inheritanceClassLvl[classLvl] =[];
-                inheritanceClassLvl[classLvl].push(currentClassObj);
-            } else {
-                inheritanceClassLvl[classLvl].push(currentClassObj);
-            }
-        }
 
         var startx = 50; var starty = 50;
         for (var i = 0; i < inheritanceClassLvl.length; i++) {
