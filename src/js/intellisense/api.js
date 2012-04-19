@@ -53,6 +53,11 @@ function generate_class_hierarchy (result, class_obj) {
 }
 
 function resolve_with_parent_members(obj) {
+
+    if (obj.name == "FuncTwo.changeOrder") {
+        var b = "sjjks";
+    }
+
     // Now get the list of class members and see if the parent nodes have anything
     var class_members = obj.get_class_members("all");
 
@@ -61,7 +66,7 @@ function resolve_with_parent_members(obj) {
         // Now we have one class member. See if there is anything in its parent
         var parent_members = __does_parent_have_member__(class_member_obj.parent, split_name(class_member));
 
-        if (parent_members.length > 0) {
+        if (parent_members.length > 1) {
             // parent_members[0] will hold the highest parent which holds this object. So we will associate the
             // child members with this object
             var parent_name = parent_members[0][0];
@@ -105,6 +110,38 @@ function __does_parent_have_member__ (parent, name, list_where_found) {
     return list_where_found;
 }
 
+function __is_base_class_member__(obj, name) {
+    // This could be an internal function
+    var inherited_members = obj.get_inherited_members();
+
+    for (var class_name in inherited_members) {
+        var class_members = inherited_members[class_name];
+
+        for (var member_key in class_members) {
+            if (split_name(member_key) == split_name(name)) {
+                var dict = [];
+                dict.push(class_name);
+                dict.push(GlobalIntellisenseRoot.get_from_global_dict(member_key));
+                return dict
+            }
+        }
+    }
+
+    return null;
+}
+
+function resolve_with_inherited_members(obj) {
+    var class_members = obj.get_class_members("all");
+
+    for (var key in class_members) {
+        var class_member_obj = GlobalIntellisenseRoot.get_from_global_dict(key);
+        var inheritedObj = __is_base_class_member__(obj, key);
+
+        if (inheritedObj == null && class_member_obj.type == "function") {
+            resolve_with_inherited_members(class_member_obj);
+        }
+    }
+}
 
 function generate_intellisense(code) {
     // 'use strict';    
@@ -131,6 +168,12 @@ function generate_intellisense(code) {
         if (g_object.type == "function") {
             resolve_with_parent_members(g_object);
         }
+    }
+
+    // Now resolve the child class data members with parents
+    for (var defun_name in GlobalIntellisenseRoot.get_global_classes()) {
+        var g_object = GlobalIntellisenseRoot.get_single_defun(defun_name);
+        resolve_with_inherited_members(g_object);
     }
 
     return GlobalIntellisenseRoot;
