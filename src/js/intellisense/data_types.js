@@ -47,6 +47,7 @@ function type_function() {
     // name = arguments[1]
     // ast = arguments[2]
     // args = arguments[3]
+
     type_object.call(this);
     var new_args = arguments;
     if (arguments.length == 1) {
@@ -289,18 +290,35 @@ function type_function() {
                             GlobalIntellisenseRoot.scratch_class_mapping[left_expr_name] = right_expr_name;
 
                             if (right_expr.name == "Array" || right_expr.name == "Object") {
-                                GlobalIntellisenseRoot.add_obj("defun", class_composed);
-                                GlobalIntellisenseRoot.add_distinct_defun_definition_found(right_expr.name);
+                                GlobalIntellisenseRoot.add_obj("global_var", class_composed);
+                                GlobalIntellisenseRoot.add_distinct_global_var_definition_found(right_expr.name);
                             }
                         }
 
-                        var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
 
                         var right_obj = null;
 
                         if (left_expr.name == "this" ||
                             GlobalIntellisenseRoot.is_defun_present(left_expr_name) ||
                             GlobalIntellisenseRoot.is_global_var_present(left_expr_name)) {
+
+                            var alternate_search_name = null;
+
+                            if (left_expr.name == "this") {
+
+                                if (left_expr.type == "array_subscript") {
+                                    alternate_search_name + left_expr.array.name + "." + left_expr.array.child.name;
+                                } else {
+                                    alternate_search_name = left_expr.name + "." + left_expr.child.name;
+                                }
+                            }
+
+                            var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this, [], alternate_search_name);
+
+                            // Delete the global object name if it is different from the left_expr name
+                            if (left_expr_name != left_expr.name) {
+                                delete GlobalIntellisenseRoot.obj_dict[alternate_search_name];
+                            }
 
                             // Now check if the expr type is "name" or not
                             if (right_expr.type == "name" || right_expr.type == "composition") {
@@ -337,13 +355,18 @@ function type_function() {
 
                     case "call":
                         if (expr.called_obj.name == "this") {
-                            // We are going to handle this locally
-                            var func_obj = this.is_base_class_member(expr.called_obj.child.name);
 
-                            if (func_obj == null)
-                                func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+                            var func_obj = factory(this.name + "." + expr.called_obj.child.name, "function", type_function, expr.token, this, []);
 
-                            func_obj.add_usage(expr, "Function Call");
+                            // func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+
+                            var func_usage = create_usage_object(func_obj.name, code_ast[i], expr.token.start.line, this.name);
+
+                            func_obj.add_usage(func_usage, "Function Call");
+
+                            if (expr.called_obj.name == "this")
+                                this.add_class_member(func_obj);
+
                         } else {
                             populate_function_calls(expr);
                         }
@@ -363,7 +386,7 @@ function type_function() {
                                 var block_expr = block[kcounter];
                                 if (block_expr.type == "call") {
                                     if (block_expr.name == "this") {
-                                        var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
+                                        var func_obj = GlobalIntellisenseRoot.get_from_global_dict(split_name(this.name) + "." + block_expr.called_obj.child.name);
                                         func_obj.add_usage(block_expr, "Function Call");
                                     } else {
                                         populate_function_calls(block_expr);
@@ -529,11 +552,20 @@ function create_usage_object(name, ast, line, class_where_used) {
 }
 
 // Global Method for creating type_objects. Use this method only
-function factory(name, obj_type, constructor_call, token, parent, args) {
+function factory(name, obj_type, constructor_call, token, parent, args, alternate_search_name) {
     var found = false;
 
-    if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
+    if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name) ||
+        ((alternate_search_name != undefined) && (alternate_search_name != null) && (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(alternate_search_name)))) {
         var obj = GlobalIntellisenseRoot.obj_dict[name];
+
+        if (obj == undefined && alternate_search_name != undefined && alternate_search_name != null) {
+            obj = GlobalIntellisenseRoot.obj_dict[alternate_search_name];
+            obj = GlobalIntellisenseRoot.obj_dict[name] = clone(obj);
+            obj.name = name;
+            obj.type = obj_type;
+        }
+
         if (obj_type == "defun" || obj_type == "function") {
             if (!obj.isDefinitionEncountered() && args != null) {
                 obj.setArgs(args);

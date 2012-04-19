@@ -119,5 +119,6 @@ function count_dictionary_items(dict) {
 }
 
 function split_name(qualified_name) {
-    return qualified_name.split(".")[1];
+    var split_arr = qualified_name.split(".");
+    return split_arr[split_arr.length - 1];
 }
