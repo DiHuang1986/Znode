@@ -935,12 +935,10 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     var usage_obj = member_list[key].get_usage();
                 
                     var row_span = count_dictionary_items(usage_obj);
-                    html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + split_name(key) + "</center></td>";
+                    html = html + "<tr><td style='color:red;font-weight:bold'><center>" + split_name(key) + "</center></td>";
                     
-
-
                     var type = member_list[key].type;
-                    html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
+                    html = html + "<td><center>" + type + "</center></td>";
 
                     html += "<td>";
 
