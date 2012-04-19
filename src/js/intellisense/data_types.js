@@ -233,6 +233,25 @@ function type_function() {
         return this.classes_this_composes;
     }
 
+    this.is_base_class_member = function (name) {
+        var inherited_members = this.get_inherited_members();
+
+        for (var class_name in inherited_members) {
+            var class_members = inherited_members[class_name];
+
+            for (var member_key in class_members) {
+                if (member_key == name) {
+                    var dict = [];
+                    dict.push(class_name);
+                    dict.push(GlobalIntellisenseRoot.get_from_global_dict(name));
+                    return dict
+                }
+            }
+        }
+
+        return null;
+    }
+
     this.walk_function = function () {
         // Walk the ast for the function alone to generate the dependency graph
         var code_ast = this.ast[1][0][3];
@@ -317,9 +336,13 @@ function type_function() {
                         break;
 
                     case "call":
-                        if (expr.name == "this") {
+                        if (expr.called_obj.name == "this") {
                             // We are going to handle this locally
-                            var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+                            var func_obj = this.is_base_class_member(expr.called_obj.child.name);
+
+                            if (func_obj == null)
+                                func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+
                             func_obj.add_usage(expr, "Function Call");
                         } else {
                             populate_function_calls(expr);
