@@ -53,11 +53,6 @@ function generate_class_hierarchy (result, class_obj) {
 }
 
 function resolve_with_parent_members(obj) {
-
-    if (obj.name == "FuncTwo.changeOrder") {
-        var b = "sjjks";
-    }
-
     // Now get the list of class members and see if the parent nodes have anything
     var class_members = obj.get_class_members("all");
 
@@ -110,19 +105,33 @@ function __does_parent_have_member__ (parent, name, list_where_found) {
     return list_where_found;
 }
 
+// This is useful when the function is a data-member function to a major defun
+function __get_all_inherited_members__(obj) {
+    var list = [];
+    while (obj != null) {
+        list[obj.name] = obj.get_inherited_members();
+        obj = obj.parent;
+    }
+
+    return list;
+}
+
+
 function __is_base_class_member__(obj, name) {
     // This could be an internal function
-    var inherited_members = obj.get_inherited_members();
+    var all_inherited_members = __get_all_inherited_members__(obj);
 
-    for (var class_name in inherited_members) {
-        var class_members = inherited_members[class_name];
+    for (var inherited_class in all_inherited_members) {
+        
+        var inherited_members = all_inherited_members[inherited_class];
 
-        for (var member_key in class_members) {
-            if (split_name(member_key) == split_name(name)) {
-                var dict = [];
-                dict.push(class_name);
-                dict.push(GlobalIntellisenseRoot.get_from_global_dict(member_key));
-                return dict
+        for (var class_name in inherited_members) {
+            var class_members = inherited_members[class_name];
+
+            for (var member_key in class_members) {
+                if (split_name(member_key) == split_name(name)) {
+                    return GlobalIntellisenseRoot.get_from_global_dict(member_key);
+                }
             }
         }
     }
@@ -136,6 +145,17 @@ function resolve_with_inherited_members(obj) {
     for (var key in class_members) {
         var class_member_obj = GlobalIntellisenseRoot.get_from_global_dict(key);
         var inheritedObj = __is_base_class_member__(obj, key);
+
+        if (inheritedObj != null) {
+            // This is an inherited object. so delete the one from this class and use the other one.
+            for (var k in class_member_obj.get_usage()) {
+                inheritedObj.usage[k] = class_member_obj.usage[k];
+            }
+
+            // Delete the original object
+            delete GlobalIntellisenseRoot.obj_dict[key];
+            delete obj.class_members[key];
+        }
 
         if (inheritedObj == null && class_member_obj.type == "function") {
             resolve_with_inherited_members(class_member_obj);
