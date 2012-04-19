@@ -624,12 +624,15 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                 var usage_list = obj.get_usage();
 
                 for (var key in usage_list) {
+                    var type = usage_list[key][0];
+                    var usage_obj = usage_list[key][1];
+
                     html = html + "<tr><td style='color:blue;font-weight:bold'><center>" + key + "</center></td>";
                     
-                    var type = usage_list[key][0];
-                    html = html + "<td style='color:blue;font-weight:bold'><center>" + type + "</center></td>";
+                    html += "<td style='color:blue;font-weight:bold'><center>" + type + "</center></td>";
 
-                    var usage_obj = usage_list[key][1];
+                    html += "<td style='color:red;font-weight:bold'><center>" + usage_obj.get_where_used() + "</center></td>";
+
                     var code_str = usage_obj.get_code_string();
 
                     color = ((count % 2) == 0) ? "Indigo" : "Brown";
@@ -847,7 +850,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
             var count = 0;
             var color = "";
 
-            $("#DataMembersPopup").css({ width: win.width() - 300, top: 300, left: 400 });
+            // $("#DataMembersPopup").css({ width: win.width() - 300, top: 300, left: 400 });
 
             var inherited_member_list = obj.get_inherited_members();
             var inherited_member_list_count = count_dictionary_items(inherited_member_list);
@@ -863,7 +866,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                             <th><center>Data Member</center></th>\
                             <th><center>Inherits From</center></th>\
                             <th><center>Type</center></th>\
-                            <th><center>Usage</center></th>\
+                            <th><center>Defined in</center></th>\
                         </tr>\
                     </thead>\
                     <tbody id="DataMemberViewTableBody1">';
@@ -888,7 +891,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         for (var key in usage_obj) {
                             color = ((count % 2) == 0) ? "Indigo" : "Brown";
                             var code_str = usage_obj[key][1].get_code_string();
-                            html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                            var class_where_used = usage_obj[key][1].get_where_used();
+                            html += "<center><font color='" + color + "'><b>" + class_where_used + "</b>: " + code_str + "</font></center>";
                             ++count;
                         }
 
@@ -917,18 +921,24 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         <tr>\
                             <th><center>Data Member</center></th>\
                             <th><center>Type</center></th>\
-                            <th><center>Usage</center></th>\
+                            <th><center>Defined in</center></th>\
                         </tr>\
                     </thead>\
                     <tbody id="DataMemberViewTableBody2">';
 
 
                 for (var key in member_list) {
+                    if (split_name(key) == "shutdownVisualGameObject") {
+                        var kk = key;
+                    }
+                    
                     var usage_obj = member_list[key].get_usage();
                 
                     var row_span = count_dictionary_items(usage_obj);
                     html = html + "<tr><td style='color:red;font-weight:bold' rowspan='" + row_span + "'><center>" + split_name(key) + "</center></td>";
                     
+
+
                     var type = member_list[key].type;
                     html = html + "<td rowspan='" + row_span + "'><center>" + type + "</center></td>";
 
@@ -937,7 +947,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     for (var key in usage_obj) {
                         color = ((count % 2) == 0) ? "Indigo" : "Brown";
                         var code_str = usage_obj[key][1].get_code_string();
-                        html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                        var class_where_used = usage_obj[key][1].get_where_used();
+                        html += "<center><font color='" + color + "'><b>" + class_where_used + "</b>: " + code_str + "</font></center>";
                         ++count;
                     }
 
@@ -963,7 +974,7 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                             <th><center>Data Member</center></th>\
                             <th><center>Composition Class</center></th>\
                             <th><center>Type</center></th>\
-                            <th><center>Usage</center></th>\
+                            <th><center>Defined in</center></th>\
                         </tr>\
                     </thead>\
                     <tbody id="Tbody1">';
@@ -987,7 +998,8 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                         for (var key in usage_obj) {
                             color = ((count % 2) == 0) ? "Indigo" : "Brown";
                             var code_str = usage_obj[key][1].get_code_string();
-                            html += "<center><font color='" + color + "'>" + code_str + "</font></center>";
+                            var class_where_used = usage_obj[key][1].get_where_used();
+                            html += "<center><font color='" + color + "'><b>" + class_where_used + "</b>: " + code_str + "</font></center>";
                             ++count;
                         }
 

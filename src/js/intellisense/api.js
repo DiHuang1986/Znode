@@ -48,7 +48,8 @@ function generate_intellisense(code) {
 
     clean_defun_definitions_found();
 
-    GlobalIntellisenseRoot.source = code.split("\n");
+    GlobalIntellisenseRoot.source_array = code.split("\n");
+    GlobalIntellisenseRoot.source_code = code;
     
     return GlobalIntellisenseRoot;
 }

@@ -148,7 +148,7 @@ $(function () {
 
     $("#source_view").click(function () {
         // Setup the source code for the focused node
-        var src = graph.getNodes()[0].getSourceCode();
+        var src = GlobalIntellisenseRoot.source_code;
         $(".source_code").append(src);
         $("pre.source_code").snippet("javascript", { style: "random", transparent: true, showNum: true });
         $("#SourceViewPopup").modal('show');

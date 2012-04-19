@@ -239,7 +239,7 @@ function type_function() {
 
         for (var i = 0; i < code_ast.length; ++i) {
             var expr = walk_tree(code_ast[i]);
-            create_global_vars(expr);
+            create_global_vars(expr, this.name);
 
             if (expr != null) {
                 switch (expr.type) {
@@ -254,8 +254,8 @@ function type_function() {
                         if (Introspect.typeOf(left_expr.token) == "object")
                             left_expr_start_line = left_expr.token.start.line;
 
-                        var right_expr_usage_obj = create_usage_object(right_expr.name, code_ast[i], right_expr_start_line);
-                        var left_expr_usage_obj = create_usage_object(left_expr.name, code_ast[i], left_expr_start_line);
+                        var right_expr_usage_obj = create_usage_object(right_expr.name, code_ast[i], right_expr_start_line, this.name);
+                        var left_expr_usage_obj = create_usage_object(left_expr.name, code_ast[i], left_expr_start_line, this.name);
 
                         var right_expr_name = get_qualified_name(parse_expr(right_expr), ((right_expr.name == "this") ? this : null));
                         var left_expr_name = get_qualified_name(parse_expr(left_expr), ((left_expr.name == "this") ? this : null));
@@ -263,13 +263,16 @@ function type_function() {
                         if (right_expr.type == "composition") {
                             this.classes_this_composes[right_expr.name] = right_expr;
                             // Now add it to the class which is composed (but don't add if it derives from Object
-                            if (right_expr.name != "Object") {
-                                var class_composed = factory(right_expr.name, right_expr.type, type_function, right_expr.token, null, []);
-                            }
-
+                            var class_composed = factory(right_expr.name, right_expr.type, type_function, right_expr.token, null, []);
                             class_composed.add_classes_where_composed(this.name, this);
+
                             this.add_dependency(right_expr.name);
                             GlobalIntellisenseRoot.scratch_class_mapping[left_expr_name] = right_expr_name;
+
+                            if (right_expr.name == "Array" || right_expr.name == "Object") {
+                                GlobalIntellisenseRoot.add_obj("defun", class_composed);
+                                GlobalIntellisenseRoot.add_distinct_defun_definition_found(right_expr.name);
+                            }
                         }
 
                         var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
@@ -345,7 +348,7 @@ function type_function() {
                                 }
                             }
                         } else {
-                           // Need to see if we need it now.
+                            // Need to see if we need it now.
                         }
 
                         break
@@ -399,9 +402,11 @@ function binary_expression() {
 function type_usage() {
     this.code_str = "";
     this.line = -1;
+    this.class_where_used = "";
 
-    this.get_code_string = function () { return GlobalIntellisenseRoot.source[this.line]; }
+    this.get_code_string = function () { return GlobalIntellisenseRoot.source_array[this.line]; }
     this.get_line_number = function () { return this.line; }
+    this.get_where_used = function () { return this.class_where_used; }
 }
 
 function type_function_call() {
@@ -488,13 +493,14 @@ type_if_expr.prototype         = new type_object;
 type_function_call.prototype = new type_object;
 type_conditional_expr.prototype = new type_object;
 
-function create_usage_object(name, ast, line) {
+function create_usage_object(name, ast, line, class_where_used) {
     var usage_obj = new type_usage();
     ast = ["toplevel", [ast]];
     var code = gen_code(ast, {beautify : true});
     usage_obj.code_str = code;
     usage_obj.line = line;
     usage_obj.name = name;
+    usage_obj.class_where_used = class_where_used;
     usage_obj.type = "usage_object";
     return usage_obj;
 }
@@ -552,6 +558,7 @@ function global_node() {
     this.distinct_defun_found = {};
     this.variable_class_mapping = {};               // For global variables holding composition.
     this.source_code = "";
+    this.source_array = [];
 
     this.scratch_class_mapping = {};                // Used by internal functions
 
