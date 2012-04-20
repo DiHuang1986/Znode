@@ -1025,24 +1025,24 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
         var node_text;
         var node_text_name = this.getHtmlIdName("text_area");
 
-        node_text_p.click(function() {
-            txt.empty();
-            txt.append("<textarea id='" + node_text_name + "'></textarea>");
-            node_text = $("#" + node_text_name);
-            node_text.css({
-            "width" : nodeWidth - 16,
-            "height" : text_height - 17,
-            "resize" : "auto",
-            "overflow" : "auto",
-            "font-size" : "12px",
-            "font-family": "sans-serif",
-            "border": "none",
-            "color": "black",
-            "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
-             // "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
-            "z-index" : 4,
-            });
-        });
+        // node_text_p.click(function() {
+            // txt.empty();
+            // txt.append("<textarea id='" + node_text_name + "'></textarea>");
+            // node_text = $("#" + node_text_name);
+            // node_text.css({
+            // "width" : nodeWidth - 16,
+            // "height" : text_height - 17,
+            // "resize" : "auto",
+            // "overflow" : "auto",
+            // "font-size" : "12px",
+            // "font-family": "sans-serif",
+            // "border": "none",
+            // "color": "black",
+            // "background": "-webkit-gradient(linear, left bottom, left top, from(#C35617), to(#F88017))",
+             // // "background" : "-webkit-gradient(linear, left top, left bottom, from(#5AE), to(#036))",
+            // "z-index" : 4,
+            // });
+        // });
 
         txt.css("position", "absolute");
 
@@ -1229,7 +1229,7 @@ while(curDate-date < millis);
             var id = setInterval(function () {
                 var my = mouseY - 17;
                 // link.attr("path", "M " + x + " " + y + " L " + mouseX + " " + my);
-                var updatePath = arrow(x, y, mouseX, mouseY, type, "inheritance");
+                var updatePath = arrow(x, y, mouseX, mouseY, "inheritance");
                 link.attr("path", updatePath);
                 pathEnd.x = mouseX;
                 pathEnd.y = mouseY;
