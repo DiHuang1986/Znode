@@ -47,6 +47,7 @@ function type_function() {
     // name = arguments[1]
     // ast = arguments[2]
     // args = arguments[3]
+
     type_object.call(this);
     var new_args = arguments;
     if (arguments.length == 1) {
@@ -239,7 +240,7 @@ function type_function() {
 
         for (var i = 0; i < code_ast.length; ++i) {
             var expr = walk_tree(code_ast[i]);
-            create_global_vars(expr);
+            create_global_vars(expr, this.name);
 
             if (expr != null) {
                 switch (expr.type) {
@@ -254,8 +255,8 @@ function type_function() {
                         if (Introspect.typeOf(left_expr.token) == "object")
                             left_expr_start_line = left_expr.token.start.line;
 
-                        var right_expr_usage_obj = create_usage_object(right_expr.name, code_ast[i], right_expr_start_line);
-                        var left_expr_usage_obj = create_usage_object(left_expr.name, code_ast[i], left_expr_start_line);
+                        var right_expr_usage_obj = create_usage_object(right_expr.name, code_ast[i], right_expr_start_line, this.name);
+                        var left_expr_usage_obj = create_usage_object(left_expr.name, code_ast[i], left_expr_start_line, this.name);
 
                         var right_expr_name = get_qualified_name(parse_expr(right_expr), ((right_expr.name == "this") ? this : null));
                         var left_expr_name = get_qualified_name(parse_expr(left_expr), ((left_expr.name == "this") ? this : null));
@@ -263,22 +264,42 @@ function type_function() {
                         if (right_expr.type == "composition") {
                             this.classes_this_composes[right_expr.name] = right_expr;
                             // Now add it to the class which is composed (but don't add if it derives from Object
-                            if (right_expr.name != "Object") {
-                                var class_composed = factory(right_expr.name, right_expr.type, type_function, right_expr.token, null, []);
-                            }
-
+                            var class_composed = factory(right_expr.name, right_expr.type, type_function, right_expr.token, null, []);
                             class_composed.add_classes_where_composed(this.name, this);
+
                             this.add_dependency(right_expr.name);
                             GlobalIntellisenseRoot.scratch_class_mapping[left_expr_name] = right_expr_name;
+
+                            if (right_expr.name == "Array" || right_expr.name == "Object") {
+                                GlobalIntellisenseRoot.add_obj("global_var", class_composed);
+                                GlobalIntellisenseRoot.add_distinct_global_var_definition_found(right_expr.name);
+                            }
                         }
 
-                        var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this);
 
                         var right_obj = null;
 
                         if (left_expr.name == "this" ||
                             GlobalIntellisenseRoot.is_defun_present(left_expr_name) ||
                             GlobalIntellisenseRoot.is_global_var_present(left_expr_name)) {
+
+                            var alternate_search_name = null;
+
+                            if (left_expr.name == "this") {
+
+                                if (left_expr.type == "array_subscript") {
+                                    alternate_search_name + left_expr.array.name + "." + left_expr.array.child.name;
+                                } else {
+                                    alternate_search_name = left_expr.name + "." + left_expr.child.name;
+                                }
+                            }
+
+                            var left_obj = factory(left_expr_name, left_expr.type, type_object, assign_expression.token, this, [], alternate_search_name);
+
+                            // Delete the global object name if it is different from the left_expr name
+                            if (left_expr_name != left_expr.name) {
+                                delete GlobalIntellisenseRoot.obj_dict[alternate_search_name];
+                            }
 
                             // Now check if the expr type is "name" or not
                             if (right_expr.type == "name" || right_expr.type == "composition") {
@@ -314,10 +335,19 @@ function type_function() {
                         break;
 
                     case "call":
-                        if (expr.name == "this") {
-                            // We are going to handle this locally
-                            var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
-                            func_obj.add_usage(expr, "Function Call");
+                        if (expr.called_obj.name == "this") {
+
+                            var func_obj = factory(this.name + "." + expr.called_obj.child.name, "function", type_function, expr.token, this, []);
+
+                            // func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + expr.called_obj.child.name);
+
+                            var func_usage = create_usage_object(func_obj.name, code_ast[i], expr.token.start.line, this.name);
+
+                            func_obj.add_usage(func_usage, "Function Call");
+
+                            if (expr.called_obj.name == "this")
+                                this.add_class_member(func_obj);
+
                         } else {
                             populate_function_calls(expr);
                         }
@@ -337,7 +367,7 @@ function type_function() {
                                 var block_expr = block[kcounter];
                                 if (block_expr.type == "call") {
                                     if (block_expr.name == "this") {
-                                        var func_obj = GlobalIntellisenseRoot.get_from_global_dict(this.name + "." + block_expr.called_obj.child.name);
+                                        var func_obj = GlobalIntellisenseRoot.get_from_global_dict(split_name(this.name) + "." + block_expr.called_obj.child.name);
                                         func_obj.add_usage(block_expr, "Function Call");
                                     } else {
                                         populate_function_calls(block_expr);
@@ -345,7 +375,7 @@ function type_function() {
                                 }
                             }
                         } else {
-                           // Need to see if we need it now.
+                            // Need to see if we need it now.
                         }
 
                         break
@@ -399,9 +429,11 @@ function binary_expression() {
 function type_usage() {
     this.code_str = "";
     this.line = -1;
+    this.class_where_used = "";
 
-    this.get_code_string = function () { return GlobalIntellisenseRoot.source[this.line]; }
+    this.get_code_string = function () { return GlobalIntellisenseRoot.source_array[this.line]; }
     this.get_line_number = function () { return this.line; }
+    this.get_where_used = function () { return this.class_where_used; }
 }
 
 function type_function_call() {
@@ -488,23 +520,33 @@ type_if_expr.prototype         = new type_object;
 type_function_call.prototype = new type_object;
 type_conditional_expr.prototype = new type_object;
 
-function create_usage_object(name, ast, line) {
+function create_usage_object(name, ast, line, class_where_used) {
     var usage_obj = new type_usage();
     ast = ["toplevel", [ast]];
     var code = gen_code(ast, {beautify : true});
     usage_obj.code_str = code;
     usage_obj.line = line;
     usage_obj.name = name;
+    usage_obj.class_where_used = class_where_used;
     usage_obj.type = "usage_object";
     return usage_obj;
 }
 
 // Global Method for creating type_objects. Use this method only
-function factory(name, obj_type, constructor_call, token, parent, args) {
+function factory(name, obj_type, constructor_call, token, parent, args, alternate_search_name) {
     var found = false;
 
-    if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name)) {
+    if (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(name) ||
+        ((alternate_search_name != undefined) && (alternate_search_name != null) && (GlobalIntellisenseRoot.obj_dict.hasOwnProperty(alternate_search_name)))) {
         var obj = GlobalIntellisenseRoot.obj_dict[name];
+
+        if (obj == undefined && alternate_search_name != undefined && alternate_search_name != null) {
+            obj = GlobalIntellisenseRoot.obj_dict[alternate_search_name];
+            obj = GlobalIntellisenseRoot.obj_dict[name] = clone(obj);
+            obj.name = name;
+            obj.type = obj_type;
+        }
+
         if (obj_type == "defun" || obj_type == "function") {
             if (!obj.isDefinitionEncountered() && args != null) {
                 obj.setArgs(args);
@@ -552,6 +594,7 @@ function global_node() {
     this.distinct_defun_found = {};
     this.variable_class_mapping = {};               // For global variables holding composition.
     this.source_code = "";
+    this.source_array = [];
 
     this.scratch_class_mapping = {};                // Used by internal functions
 

@@ -6,6 +6,8 @@ function cat()
   this.legs = 4;
   this.diet = 'carnivore';
 
+  this.catFunction = function() { return 5; }
+
   return true;
 }
 
@@ -13,6 +15,8 @@ function lion()
 {
   this.mane = true;
   this.origin = 'Africa';
+ 
+  this.catFunction();
 
   return true;
 }
