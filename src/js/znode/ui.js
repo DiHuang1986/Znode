@@ -65,7 +65,6 @@ $(function () {
         // Loop through all the global classes found.
         for (var key in GlobalIntellisenseRoot.defun) {
             classNames.append("<div class='className'>" + key + "<\/div>");
-            classCount++;
         }
     });
 
