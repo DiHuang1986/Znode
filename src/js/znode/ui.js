@@ -417,7 +417,7 @@ function parseHtmlFile(file, htmlFileCode){
 
 function parseInit(code, node_str) {
     generate_intellisense(code);
-    // initial InheritanceLvl
+    // initial InheritanceLvl========
     generateInheritanceLvl(GlobalIntellisenseRoot);
 
     graph.generateInheritanceTree(true);
