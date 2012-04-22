@@ -5,6 +5,7 @@ function get_node_from_id(graph_to_use, id_string) {
     return node;
 }
 
+var g_class_name;
 var defaultNodeWidth = 200;
 var defaultNodeHeight = 100;
 var win = $(window);
@@ -1012,7 +1013,88 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
 
             $("#DataMembersPopup").modal('show');
         });
+        
+        
+        if (!noDelete) {
+            n.append("<img id='" + this.getHtmlIdName("function") + "' width=15 height=15 src='img/function.png' rel='tooltip' title='Show function calls'><\/img>");
+            var func = $("#" + this.getHtmlIdName("function"));
+            func.css({
+                "visibility": "visible",
+                "border-top-left-radius": "8px",
+                "position": "absolute",
+                "padding-right": 5,
+                "padding-top": 3,
+                "padding-left": 5,
+                "padding-bottom": 2,
+                "color": "white",
+                "font-family": "sans-serif",
+                "top": 0,
+                "right": 105,
+                "cursor": "pointer",
+                "font-size": "10px",
+                "background-color": "black",
+                "z-index": 100
+            });
+
+            func.tooltip('hide');
+
+            func.click( function(event) {
+                var orig_node = get_node_from_id(graph, event.target.id);            
+                var obj = orig_node.getIntellisenseObj();
+                
+                var functionCalls = $('#functionCalls');
+                functionCalls.html(''); // clear the top element
+                $('#openFunc').fadeIn();
+        
+                // Display all the function calls.
+                g_class_name = obj['name'];
+                var obj = GlobalIntellisenseRoot.defun[g_class_name];
+                var class_members = obj.get_class_members("all");
+                for (member in class_members) {
+                    if (class_members[member]['type'] == 'function') {
+                        functionCalls.append("<div class='functionsList'>" + member + "<\/div>")
+                    }
+                }
+           });
+         }
+        
         }
+        
+        // an even handler for the function calls list.
+    $('.functionsList').live('click', function(e) {
+        var obj = GlobalIntellisenseRoot.defun[g_class_name];
+        var class_members = obj.get_class_members("all");
+        $("#usageViewTableBody").empty();
+        var html = "";
+        
+        for (member in class_members) {
+            if (member == $(e.target).html()) {
+                var usage_list = class_members[member]['usage'];
+                for (key in usage_list) {
+                    html = html + "<tr><td><center>" + usage_list[key][1]['line'] + "</center></td>";
+                    html = html + "<td><center>" + usage_list[key][0] + "</center></td>";
+                    html = html + "<td><center>" + usage_list[key][1]['code_str'] + "</center></td><tr>";
+                    //console.log(usage_list[key][1]['line']);
+                    //console.log(usage_list[key][1]['code_str']);
+                    //console.log(usage_list[key][0]);
+            }
+          }
+        }
+        $("#usageViewTableBody").append(html);
+        $('#openFunc').fadeOut();
+        //openComp.fadeOut();
+        $("#UsageViewPopup").modal('show');
+        //alert('You selected ' + $(e.target).html());
+    }).live('mouseover', function () {
+        $(this).css({
+            "background-color": "#ededed"
+        });
+    }).live('mouseout', function () {
+        $(this).css({
+            "background-color": "white"
+        });
+    });
+     
 
         // var total_height = nodeHeight - bar.height() - 8;
         var total_height = n.height() - bar.height();
