@@ -198,3 +198,34 @@ function generate_intellisense(code) {
 
     return GlobalIntellisenseRoot;
 }
+
+//generate InheritanceClassLvl and store it in the inheritanceClassLvl(Global Variable)==========
+function generateInheritanceLvl(intellisenseRoot) {
+    var intellisense = intellisenseRoot;
+    var classLvl;
+    inheritanceClassLvl = [];
+
+    for(var key in intellisense.defun) {
+        classLvl = 0;
+
+        var currentClassObj = intellisense.defun[key];
+        var curClassObj = currentClassObj;
+        var supClassName;
+        if(curClassObj.super_classes)
+            supClassName = curClassObj.super_classes[0];
+
+        while (supClassName) {
+            curClassObj = get_class_obj(supClassName);
+            supClassName = curClassObj.super_classes[0];
+            classLvl ++;
+        }
+
+        if(!inheritanceClassLvl[classLvl]) {
+            inheritanceClassLvl[classLvl] =[];
+            inheritanceClassLvl[classLvl].push(currentClassObj);
+        } else {
+            inheritanceClassLvl[classLvl].push(currentClassObj);
+        }
+    }
+    return inheritanceClassLvl;
+}

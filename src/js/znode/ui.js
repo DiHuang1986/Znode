@@ -415,10 +415,11 @@ function parseHtmlFile(file, htmlFileCode){
 }
 
 function parseInit(code, node_str) {
-    
-  generate_intellisense(code);
+    generate_intellisense(code);
+    // initial InheritanceLvl========
+    generateInheritanceLvl(GlobalIntellisenseRoot);
 
-  graph.generateInheritanceTree(true);
-  
-  $(node_str).modal('hide');  
+    graph.generateInheritanceTree(true);
+
+    $(node_str).modal('hide');
 }
