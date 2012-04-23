@@ -715,16 +715,15 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     }
                 
 
-                    //$("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
-                    //var inheritance_graph = new NodeGraph(secondary_canvas_id, win.width() - 300, win.height() - 250, "secondary_canvas");
-                    graph.clearAll();
+                    $("#SecondaryCanvasView").css({ width: win.width() - 300, height: win.height() - 250, background: "#444444", top: 300, left: 400 });
+                    var inheritance_graph = new NodeGraph(secondary_canvas_id, win.width() - 300, win.height() - 250, "secondary_canvas");
+                    inheritance_graph.clearAll();
 
-                    //$("#SecondaryCanvasView").modal('show');
+                    $("#SecondaryCanvasView").modal('show');
                     var obj = orig_node.getIntellisenseObj();
 
                     //=============generate single class inheritance tree=====
-                    //var obj = orig_node.getIntellisenseObj();
-                    graph.generateInheritanceTreeOf(obj);
+                    inheritance_graph.generateInheritanceTreeOf(obj);
                     //==========end of generation========
 
                     /*
@@ -1433,7 +1432,7 @@ while(curDate-date < millis);
                 if(classObj == inheritanceClassLvl[i][j]) {
                     var classLvl = i;
                     var obj = inheritanceClassLvl[i][j];
-                    var originNode = currentGraph.addNode(startx, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                    var originNode = currentGraph.addNode(startx, starty+i*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
                     node_name_id_mapping[obj.name] = originNode.getID();
                     var str = "";
                     try {
@@ -1455,7 +1454,7 @@ while(curDate-date < millis);
             var obj = node.getIntellisenseObj();
             var subNode = node;
             for(var superClassObj=get_class_obj(obj.super_classes[0]); superClassObj; superClassObj=get_class_obj(superClassObj.super_classes[0])) {
-                var supNode = currentGraph.addNode(startx, starty+ (--classLvl)*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, superClassObj);
+                var supNode = currentGraph.addNode(startx, starty+ (--classLvl)*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, superClassObj);
                 node_name_id_mapping[obj.name] = supNode.getID();
                 var str = "";
                 try {
@@ -1485,7 +1484,7 @@ while(curDate-date < millis);
                         controlClassObj = get_class_obj(controlClassObj.super_classes[0]);
                     }
                     if(controlClassObj == originObj) {
-                        var subNode = currentGraph.addNode(startx, starty+ i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, subClassObj);
+                        var subNode = currentGraph.addNode(startx, starty+ i*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, subClassObj);
                         node_name_id_mapping[obj.name] = subNode.getID();
                         var str = "";
                         try {
@@ -1499,7 +1498,7 @@ while(curDate-date < millis);
 
                         var supClass = subClassObj.super_classes[0]
                         var supNode = currentGraph.getNodeFromName(supClass);
-
+                                //==========BUG HERE==============NO IDEA=========
                         if(supNode)
                             createConnection(subNode, "top", supNode, "bottom", "inheritance");
                         startx = startx + 1.5 * inheritanceNodeWidth;
@@ -1520,7 +1519,7 @@ while(curDate-date < millis);
         for (var i = 0; i < inheritanceClassLvl.length; i++) {
             for(var j = 0; j < inheritanceClassLvl[i].length; j++) {
                 var obj = inheritanceClassLvl[i][j];
-                var node = this.addNode(startx+j*1.5*inheritanceNodeWidth, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                var node = this.addNode(startx+j*1.5*inheritanceNodeWidth, starty+i*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
                 node_name_id_mapping[obj.name] = node.getID();
                 var str = "";
                 try {
@@ -1536,7 +1535,7 @@ while(curDate-date < millis);
         }
 
         // Update the startx and start y
-        starty += i * 2 * inheritanceNodeHeight;
+        starty += i * 1.6 * inheritanceNodeHeight;
 
         for (var key in intellisense.defun) {
             var obj = intellisense.defun[key];
