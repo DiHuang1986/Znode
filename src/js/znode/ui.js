@@ -11,7 +11,7 @@ $(function () {
     // consider moving to NodeGraph
 
     $("#" + main_canvas_id).mousedown(function (e) {
-        if ((openWin.css("display") == "none") && (openComp.css("display") == "none")) {
+        if ((openWin.css("display") == "none") && (openFunc.css("display") == "none")) {
             var children = $(e.target).children();
             if (children.length > 0) {
                 var type = children[0].tagName;
