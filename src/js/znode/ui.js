@@ -419,6 +419,7 @@ function parseInit(code, node_str) {
     // initial InheritanceLvl========
     generateInheritanceLvl(GlobalIntellisenseRoot);
 
+    graph.clearAll();
     graph.generateInheritanceTree(true);
 
     $(node_str).modal('hide');
