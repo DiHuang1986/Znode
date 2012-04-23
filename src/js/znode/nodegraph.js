@@ -723,7 +723,6 @@ function NodeGraph(canvas_id, canvas_width, canvas_height, canvasName) {
                     var obj = orig_node.getIntellisenseObj();
 
                     //=============generate single class inheritance tree=====
-                    var obj = orig_node.getIntellisenseObj();
                     inheritance_graph.generateInheritanceTreeOf(obj);
                     //==========end of generation========
 
@@ -1423,6 +1422,7 @@ while(curDate-date < millis);
     //====================Single class inheritance view===============================
     this.generateInheritanceTreeOf = function(classObj) {
         //var intellisense = GlobalIntellisenseRoot;
+        var currentGraph = this;
         var inheritanceNodeHeight = defaultNodeHeight;
         var inheritanceNodeWidth = defaultNodeWidth;
 
@@ -1432,41 +1432,81 @@ while(curDate-date < millis);
                 if(classObj == inheritanceClassLvl[i][j]) {
                     var classLvl = i;
                     var obj = inheritanceClassLvl[i][j];
-                    var originNode = this.addNode(startx, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
-                    //node_name_id_mapping[obj.name] = originNode.getID();
+                    var originNode = currentGraph.addNode(startx, starty+i*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                    node_name_id_mapping[obj.name] = originNode.getID();
                     var str = "";
                     try {
                         var class_members = obj.get_class_members("all");
                         str = class_members_to_string(class_members);
                     } catch(e) { }
-
-
                     originNode.txt[0].value = str;
-
                     originNode.txt[0].focus();
 
-                    var subNode = originNode;
-                    //Draw the classObj's super classes
-                    for(var superClassObj=get_class_obj(obj.super_classes[0]); superClassObj; superClassObj=get_class_obj(superClassObj.super_classes[0])) {
-                        var supNode = this.addNode(startx, starty+ (--classLvl)*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, superClassObj);
-                        //node_name_id_mapping[obj.name] = supNode.getID();
-                        var str = "";
-                        try {
-                            var class_members = obj.get_class_members("all");
-                            str = class_members_to_string(class_members);
-                        } catch(e) { }
+                    drawSupClassOf(originNode, classLvl, currentGraph);
 
-                        supNode.txt[0].value = str;
-
-                        supNode.txt[0].focus();
-
-                        createConnection(subNode, "top", supNode, "bottom", "inheritance");
-                        subNode = supNode;
-                    }
-
+                    //drawSubClassOf(originNode, classLvl, currentGraph);
                 }
             }
         }
+
+        //draw all super class node of given class node and connect them
+        function drawSupClassOf(node, classLvl, currentGraph) {
+            var obj = node.getIntellisenseObj();
+            var subNode = node;
+            for(var superClassObj=get_class_obj(obj.super_classes[0]); superClassObj; superClassObj=get_class_obj(superClassObj.super_classes[0])) {
+                var supNode = currentGraph.addNode(startx, starty+ (--classLvl)*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, superClassObj);
+                node_name_id_mapping[obj.name] = supNode.getID();
+                var str = "";
+                try {
+                    var class_members = obj.get_class_members("all");
+                    str = class_members_to_string(class_members);
+                } catch(e) { }
+
+                supNode.txt[0].value = str;
+
+                supNode.txt[0].focus();
+
+                createConnection(subNode, "top", supNode, "bottom", "inheritance");
+                subNode = supNode;
+            }
+        }
+
+        //draw all sub class node of give class node and connect them
+        function drawSubClassOf(node, classLvl, currentGraph) {
+            var originObj = node.getIntellisenseObj();
+            var starty = 50;
+            for(var i = classLvl + 1; i < inheritanceClassLvl.length; i++) {
+                var startx = 50;
+                for(var j = 0; j < inheritanceClassLvl[i].length; j++) {
+                    var subClassObj = inheritanceClassLvl[i][j];
+                    var controlClassObj = subClassObj;
+                    for(var k = 0; k < i - classLvl; k++){
+                        controlClassObj = get_class_obj(controlClassObj.super_classes[0]);
+                    }
+                    if(controlClassObj == originObj) {
+                        var subNode = currentGraph.addNode(startx, starty+ i*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, subClassObj);
+                        node_name_id_mapping[obj.name] = subNode.getID();
+                        var str = "";
+                        try {
+                            var class_members = subClassObj.get_class_members("all");
+                            str = class_members_to_string(class_members);
+                        } catch(e) { }
+
+                        subNode.txt[0].value = str;
+
+                        subNode.txt[0].focus();
+
+                        var supClass = subClassObj.super_classes[0]
+                        var supNode = currentGraph.getNodeFromName(supClass);
+                                //==========BUG HERE==============NO IDEA=========
+                        if(supNode)
+                            createConnection(subNode, "top", supNode, "bottom", "inheritance");
+                        startx = startx + 1.5 * inheritanceNodeWidth;
+                    }
+                }
+            }
+        }
+
     }
     //====================END of single class inheritance view========================
     //==========================Inheritance Tree======================================
@@ -1479,7 +1519,7 @@ while(curDate-date < millis);
         for (var i = 0; i < inheritanceClassLvl.length; i++) {
             for(var j = 0; j < inheritanceClassLvl[i].length; j++) {
                 var obj = inheritanceClassLvl[i][j];
-                var node = this.addNode(startx+j*1.5*inheritanceNodeWidth, starty+i*2*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
+                var node = this.addNode(startx+j*1.5*inheritanceNodeWidth, starty+i*1.6*inheritanceNodeHeight, inheritanceNodeWidth, inheritanceNodeHeight, obj);
                 node_name_id_mapping[obj.name] = node.getID();
                 var str = "";
                 try {
@@ -1495,7 +1535,7 @@ while(curDate-date < millis);
         }
 
         // Update the startx and start y
-        starty += i * 2 * inheritanceNodeHeight;
+        starty += i * 1.6 * inheritanceNodeHeight;
 
         for (var key in intellisense.defun) {
             var obj = intellisense.defun[key];
